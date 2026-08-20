@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidLeaderboardRecord(data) {
+      return data.keys().hasAll(['playerName', 'score', 'characterId', 'timestamp']) &&
+        data.playerName is string && data.playerName.size() > 0 && data.playerName.size() <= 30 &&
+        data.score is number && data.score >= 0 && data.score <= 1000000 &&
+        data.characterId is string && data.characterId.size() <= 50 &&
+        data.timestamp is number &&
+        (!('coins' in data) || (data.coins is number && data.coins >= 0)) &&
+        (!('date' in data) || (data.date is string && data.date.size() <= 30)) &&
+        (!('userId' in data) || (data.userId is string && data.userId.size() <= 128));
+    }
+
+    function isValidUserBackup(data, userId) {
+      return data.keys().hasAll(['userId', 'highScore', 'lastSyncAt']) &&
+        data.userId == userId &&
+        data.highScore is number && data.highScore >= 0 &&
+        data.lastSyncAt is number &&
+        (!('playerName' in data) || (data.playerName is string && data.playerName.size() <= 30)) &&
+        (!('coins' in data) || (data.coins is number && data.coins >= 0)) &&
+        (!('achievementsCount' in data) || (data.achievementsCount is number && data.achievementsCount >= 0));
+    }
+
+    // Leaderboard Collection (Publicly readable for Global Rankings, Validated creation)
+    match /leaderboard/{recordId} {
+      allow read: if isValidId(recordId);
+      allow list: if true;
+      allow create: if isValidId(recordId) && isValidLeaderboardRecord(incoming());
+      allow update, delete: if false;
+    }
+
+    // User Cloud Backup Collection
+    match /users/{userId}/backup/{backupId} {
+      allow read: if isValidId(userId) && isValidId(backupId) && (request.auth == null || request.auth.uid == userId);
+      allow list: if isValidId(userId) && (request.auth == null || request.auth.uid == userId);
+      allow create, update: if isValidId(userId) && isValidId(backupId) &&
+        (request.auth == null || request.auth.uid == userId) &&
+        isValidUserBackup(incoming(), userId);
+      allow delete: if isValidId(userId) && isValidId(backupId) && (request.auth != null && request.auth.uid == userId);
+    }
+  }
+}

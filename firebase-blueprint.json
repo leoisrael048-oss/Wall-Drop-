@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "LeaderboardRecord": {
+      "title": "LeaderboardRecord",
+      "description": "Global leaderboard high score record submitted by players",
+      "type": "object",
+      "properties": {
+        "playerName": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Display name of player"
+        },
+        "score": {
+          "type": "number",
+          "description": "Score achieved in game"
+        },
+        "coins": {
+          "type": "number",
+          "description": "Coins collected in game"
+        },
+        "characterId": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Character ID used"
+        },
+        "date": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Date string of score"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Timestamp in milliseconds"
+        },
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Player device or auth user ID"
+        }
+      },
+      "required": ["playerName", "score", "characterId", "timestamp"]
+    },
+    "UserBackup": {
+      "title": "UserBackup",
+      "description": "Synced lightweight player backup data",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "User ID"
+        },
+        "playerName": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Player name"
+        },
+        "highScore": {
+          "type": "number",
+          "description": "Highest score"
+        },
+        "coins": {
+          "type": "number",
+          "description": "Current coins"
+        },
+        "achievementsCount": {
+          "type": "number",
+          "description": "Total completed achievements count"
+        },
+        "lastSyncAt": {
+          "type": "number",
+          "description": "Last synchronization timestamp"
+        }
+      },
+      "required": ["userId", "highScore", "lastSyncAt"]
+    }
+  },
+  "firestore": {
+    "/leaderboard/{recordId}": {
+      "schema": "LeaderboardRecord",
+      "description": "Collection of global top scores for the leaderboard"
+    },
+    "/users/{userId}/backup/{backupId}": {
+      "schema": "UserBackup",
+      "description": "Player personal cloud backup data"
+    }
+  }
+}

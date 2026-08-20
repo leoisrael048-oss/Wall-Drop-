@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@keyframes cascadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-cascade {
+  animation: cascadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes shimmerBeam {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmerBeam 3.2s infinite ease-in-out;
+}
+
+@keyframes goldenGlowPulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.35), inset 0 0 10px rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.7), inset 0 0 16px rgba(251, 191, 36, 0.3);
+    border-color: rgba(251, 191, 36, 1);
+  }
+}
+
+.animate-golden-pulse {
+  animation: goldenGlowPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes claimBreath {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 14px rgba(234, 179, 8, 0.4);
+  }
+  50% {
+    transform: scale(1.035);
+    box-shadow: 0 0 24px rgba(234, 179, 8, 0.8);
+  }
+}
+
+.animate-claim-breath {
+  animation: claimBreath 1.6s infinite ease-in-out;
+}
+
+@keyframes trophyUnlockSpin {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25) rotate(15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-trophy-spin {
+  animation: trophyUnlockSpin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes chainBreakAnimation {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(1.15) rotate(-6deg);
+  }
+  60% {
+    transform: scale(0.95) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-chain-break {
+  animation: chainBreakAnimation 0.6s ease-out both;
+}
+

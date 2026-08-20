@@ -1,0 +1,16 @@
+{
+  "short_name": "Wall Drop",
+  "name": "Wall Drop: Vertical Arcade",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "display": "standalone",
+  "orientation": "portrait"
+}

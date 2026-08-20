@@ -1,0 +1,6 @@
+{
+  "name": "WALL DROP",
+  "description": "Jogo arcade mobile de descida vertical com resposta rápida ao toque, oficina VIP de customização e upgrades (2000 moedas), monetização AdMob robusta, personagens, loja e narrador dinâmico.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

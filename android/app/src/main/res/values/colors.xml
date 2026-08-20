@@ -1,0 +1,7 @@
+<resources>
+    <color name="bg_synth_dark">#090d16</color>
+    <color name="neon_cyan">#06b6d4</color>
+    <color name="neon_magenta">#e11d48</color>
+    <color name="neon_gold">#fbbf24</color>
+    <color name="status_bar_color">#090d16</color>
+</resources>

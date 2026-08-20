@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#030712" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Wall Drop - Queda Livre</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <!-- Main 60 FPS HTML5 Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- In-Game HUD -->
+    <div id="hud">
+      <div>
+        <div id="hud-score">
+          <span id="hud-score-val">0</span>
+        </div>
+        <div id="hud-combo">COMBO x2</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div class="hud-pill">
+          <span>🪙</span>
+          <span id="hud-coins-val">0</span>
+        </div>
+        <button id="btn-hud-settings" class="btn-icon-circle" title="Configurações">
+          ⚙️
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Voice Narrator Floating Bubble -->
+    <div id="narrator-bubble" class="comic-bubble">
+      <span id="narrator-bubble-text">Mergulhe!</span>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="menu-screen" class="screen-overlay active">
+      <div class="glass-panel" style="width: 100%; max-width: 320px; padding: 28px 24px; text-align: center;">
+        <div class="menu-drop-icon">💧</div>
+        <h1 style="font-size: 30px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 4px; color: #38bdf8; text-shadow: 0 0 24px rgba(56,189,248,0.6);">
+          WALL DROP
+        </h1>
+        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 22px; font-weight: 500;">Queda Livre Vertical Ultra-Rápida</p>
+
+        <div style="display: flex; justify-content: space-around; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 14px; margin-bottom: 22px; border: 1px solid rgba(255,255,255,0.06);">
+          <div>
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Recorde</div>
+            <div id="menu-best-score" style="font-size: 22px; font-weight: 900; color: #ffffff;">0</div>
+          </div>
+          <div style="border-left: 1px solid rgba(255,255,255,0.1);"></div>
+          <div>
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Moedas</div>
+            <div id="menu-coins" style="font-size: 22px; font-weight: 900; color: #fbbf24;">0</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <button id="btn-play" class="glass-btn primary-retry-btn" style="width: 100%; font-size: 18px;">
+            <span>JOGAR AGORA</span>
+            <span>⚡</span>
+          </button>
+          
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-workshop" class="glass-btn gold" style="flex: 1;">
+              <span>OFICINA</span>
+              <span>🎨</span>
+            </button>
+            <button id="btn-menu-settings" class="glass-btn" style="flex: 1;">
+              <span>VOZ / SOM</span>
+              <span>🎙️</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px; font-size: 11px; color: #64748b;">
+          Toque em qualquer lugar da tela para mudar de lado
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY WITH VIRAL REPLAY & SOCIAL COMPARISON -->
+    <div id="gameover-screen" class="screen-overlay">
+      <div class="glass-panel gameover-panel">
+        <span id="go-record-badge" class="badge-record">
+          ★ NOVO RECORDE PESSOAL! ★
+        </span>
+        
+        <h2 id="go-title" style="font-size: 24px; font-weight: 900; color: #f43f5e; margin-bottom: 6px; letter-spacing: -0.5px;">
+          FIM DE JOGO! 💥
+        </h2>
+
+        <!-- Score & Stats Bar -->
+        <div class="stats-compact-bar">
+          <div>
+            <span class="stat-label">PONTOS</span>
+            <span id="go-score" class="stat-value-big">0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div>
+            <span class="stat-label">MELHOR</span>
+            <span id="go-best" class="stat-value">0</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div>
+            <span class="stat-label">MOEDAS</span>
+            <span id="go-coins" class="stat-value gold-text">+0</span>
+          </div>
+        </div>
+
+        <!-- Social Comparison Viral Hook -->
+        <div id="go-social-card" class="social-comparison-card">
+          <div class="social-icon" id="social-icon">📊</div>
+          <div class="social-content">
+            <div id="social-headline" class="social-headline">Calculando...</div>
+            <div id="social-description" class="social-description">Veja seu desempenho global</div>
+          </div>
+        </div>
+
+        <!-- Automated 3s Death Replay Player -->
+        <div class="replay-wrapper">
+          <div class="replay-header">
+            <span class="replay-live-tag">
+              <span class="pulse-dot"></span> REPLAY DA QUEDA (3s)
+            </span>
+            <span class="replay-watermark-tag">💧 WALL DROP</span>
+          </div>
+          <div class="replay-canvas-container">
+            <canvas id="replay-canvas" width="280" height="150"></canvas>
+            <div id="replay-splash-tag" class="replay-splash-tag">SPLAT!</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="gameover-actions">
+          <!-- Big Instant Retry Button for rapid loop -->
+          <button id="btn-restart" class="glass-btn primary-retry-btn" style="width: 100%; font-size: 17px;">
+            <span>⚡ TENTAR DE NOVO</span>
+          </button>
+
+          <!-- Viral Share Replay Button -->
+          <button id="btn-share-replay" class="glass-btn viral-btn" style="width: 100%;">
+            <span>🎬 COMPARTILHAR REPLAY</span>
+            <span class="share-badge">VIRAL</span>
+          </button>
+
+          <div style="display: flex; gap: 8px; width: 100%;">
+            <button id="btn-rewarded-ad" class="glass-btn gold" style="flex: 1.2; padding: 10px 8px; font-size: 13px;">
+              <span>+50 MOEDAS</span>
+              <span>🎬</span>
+            </button>
+            <button id="btn-go-settings" class="glass-btn" style="flex: 0.6; padding: 10px 8px; font-size: 13px;">
+              <span>⚙️</span>
+            </button>
+            <button id="btn-menu" class="glass-btn danger" style="flex: 0.8; padding: 10px 8px; font-size: 13px;">
+              <span>Menu</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKSHOP (SKINS) OVERLAY -->
+    <div id="workshop-screen" class="screen-overlay">
+      <div class="glass-panel" style="width: 100%; max-width: 340px; padding: 24px 20px; text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-size: 20px; font-weight: 900; color: #38bdf8;">OFICINA DE GOTAS</h2>
+          <div class="hud-pill" style="font-size: 12px; padding: 4px 10px;">
+            <span>🪙</span>
+            <span id="workshop-coins">0</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">Personalize a cor e o brilho da sua gota d'água</p>
+
+        <!-- Grid of skins generated by game.js -->
+        <div id="skins-grid" class="skins-grid"></div>
+
+        <button id="btn-workshop-back" class="glass-btn" style="width: 100%; margin-top: 8px;">
+          <span>VOLTAR AO MENU</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS & NARRATOR VOICE CONFIG OVERLAY -->
+    <div id="settings-screen" class="screen-overlay">
+      <div class="glass-panel settings-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="font-size: 20px; font-weight: 900; color: #38bdf8;">CONFIGURAÇÕES</h2>
+          <span style="font-size: 20px;">🎙️</span>
+        </div>
+
+        <!-- Voice Gender Selector -->
+        <div class="settings-group">
+          <div class="settings-label">
+            <span>Voz do Narrador (Estilo Futebol Macabro)</span>
+          </div>
+          <div class="voice-segmented">
+            <button id="voice-male-btn" class="voice-btn active">
+              <span>👨 Masculina</span>
+            </button>
+            <button id="voice-female-btn" class="voice-btn">
+              <span>👩 Feminina</span>
+            </button>
+          </div>
+          <div style="font-size: 11px; color: #94a3b8; margin-top: 8px; line-height: 1.3;">
+            Narração dramática e intensa com tom arrepiante e empolgante.
+          </div>
+        </div>
+
+        <!-- Toggles Group -->
+        <div class="settings-group">
+          <div class="switch-row">
+            <div>
+              <div class="switch-title">Voz Falada (Narrador)</div>
+              <div class="switch-desc">Comentários e gritos em tempo real</div>
+            </div>
+            <div id="toggle-narrator-switch" class="toggle-switch active">
+              <div class="toggle-switch-thumb"></div>
+            </div>
+          </div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.06); margin: 8px 0;"></div>
+          <div class="switch-row">
+            <div>
+              <div class="switch-title">Efeitos Sonoros (SFX)</div>
+              <div class="switch-desc">Sons de fluidos, sinos e impactos</div>
+            </div>
+            <div id="toggle-sfx-switch" class="toggle-switch active">
+              <div class="toggle-switch-thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Test Voice Button -->
+        <button id="btn-test-voice" class="glass-btn gold" style="width: 100%; margin-bottom: 10px; font-size: 14px;">
+          <span>OUVIR AMOSTRA DA VOZ</span>
+          <span>📢</span>
+        </button>
+
+        <button id="btn-settings-back" class="glass-btn" style="width: 100%;">
+          <span>SALVAR E VOLTAR</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Toast message overlay -->
+    <div id="toast">Mensagem</div>
+  </div>
+
+  <script src="narrator.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
