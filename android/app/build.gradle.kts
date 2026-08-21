@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -23,7 +24,6 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
             // Production AdMob IDs (Policy notice: do not click live ads during manual testing)
             manifestPlaceholders["admobAppId"] = "ca-app-pub-4632188788602851~8680031794"
             buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-4632188788602851~8680031794\"")

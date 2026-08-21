@@ -11,7 +11,7 @@ interface HeaderHUDProps {
   onPause: () => void;
 }
 
-export const HeaderHUD: React.FC<HeaderHUDProps> = ({
+export const HeaderHUD: React.FC<HeaderHUDProps> = React.memo(({
   score,
   coins,
   combo,
@@ -151,4 +151,4 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
       </div>
     </div>
   );
-};
+});

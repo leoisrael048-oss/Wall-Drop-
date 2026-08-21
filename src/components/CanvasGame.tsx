@@ -1070,7 +1070,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
       ctx.stroke();
 
       // =========================================================================
-      // 3. RENDERIZAÇÃO DAS MOEDAS COLECIONÁVEIS (🪙) - Efeito 3D Vetorial de Ouro
+      // 3. RENDERIZAÇÃO DAS MOEDAS COLECIONÁVEIS (🪙) - Efeito 3D Vetorial de Ouro (Zero GC)
       // =========================================================================
       for (let c = 0; c < s.coinsList.length; c++) {
         const coin = s.coinsList[c];
@@ -1101,12 +1101,8 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         ctx.ellipse(0, 0, coin.radius * absSpin, coin.radius, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Face principal com gradiente dourado
-        const coinGrad = ctx.createRadialGradient(0, -coin.radius * 0.3, 1, 0, 0, coin.radius);
-        coinGrad.addColorStop(0, '#fef08a');
-        coinGrad.addColorStop(0.5, '#facc15');
-        coinGrad.addColorStop(1, '#eab308');
-        ctx.fillStyle = coinGrad;
+        // Face principal dourada sólida e ultra rápida (Zero GC / Sem alocação de gradiente)
+        ctx.fillStyle = '#facc15';
         ctx.beginPath();
         ctx.ellipse(0, 0, (coin.radius - 2.5) * absSpin, coin.radius - 2.5, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -1131,7 +1127,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
       }
 
       // =========================================================================
-      // 4. RENDERIZAÇÃO DOS OBSTÁCULOS EMOJIS (Máximo 5 Objetos)
+      // 4. RENDERIZAÇÃO DOS OBSTÁCULOS EMOJIS (Máximo 5 Objetos) (Zero GC)
       // =========================================================================
       const activeObstacleCount = Math.min(s.obstacles.length, 5);
       for (let i = 0; i < activeObstacleCount; i++) {
@@ -1192,39 +1188,16 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         ctx.rotate(wobbleAngle);
         ctx.scale(scalePulse, scalePulse);
 
-        // 4.3. Fundo Sólido Circular com Gradiente Suave
-        const sphereGrad = ctx.createRadialGradient(
-          -obs.radius * 0.35, 
-          -obs.radius * 0.35, 
-          2, 
-          0, 
-          0, 
-          obs.radius + 6
-        );
-
-        if (isCenter) {
-          sphereGrad.addColorStop(0, '#fef08a');
-          sphereGrad.addColorStop(0.5, '#eab308');
-          sphereGrad.addColorStop(1, '#713f12');
-        } else if (isSpinner) {
-          sphereGrad.addColorStop(0, '#f3e8ff');
-          sphereGrad.addColorStop(0.5, '#c084fc');
-          sphereGrad.addColorStop(1, '#581c87');
-        } else if (isZigzag || isDiagLeft || isDiagRight) {
-          sphereGrad.addColorStop(0, '#cffafe');
-          sphereGrad.addColorStop(0.5, '#06b6d4');
-          sphereGrad.addColorStop(1, '#155e75');
-        } else if (isArc) {
-          sphereGrad.addColorStop(0, '#fce7f3');
-          sphereGrad.addColorStop(0.5, '#ec4899');
-          sphereGrad.addColorStop(1, '#831843');
-        } else {
-          sphereGrad.addColorStop(0, '#fee2e2');
-          sphereGrad.addColorStop(0.5, '#ef4444');
-          sphereGrad.addColorStop(1, '#7f1d1d');
-        }
-
-        ctx.fillStyle = sphereGrad;
+        // 4.3. Fundo Sólido Circular de Alto Contraste (Zero GC / Sem alocação de gradiente)
+        ctx.fillStyle = isCenter 
+          ? '#ca8a04' 
+          : isSpinner 
+            ? '#7e22ce' 
+            : (isZigzag || isDiagLeft || isDiagRight) 
+              ? '#0e7490' 
+              : isArc 
+                ? '#be185d' 
+                : '#b91c1c';
         ctx.beginPath();
         ctx.arc(0, 0, obs.radius + 6, 0, Math.PI * 2);
         ctx.fill();
@@ -1244,7 +1217,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
 
         ctx.restore();
 
-        // 4.5. Etiqueta de Texto Simples e Nítida Abaixo do Emoji
+        // 4.5. Etiqueta de Texto O(1) sem measureText (Zero CPU overhead)
         ctx.save();
         ctx.translate(emojiCenterX, emojiCenterY + obs.radius + 16);
 
@@ -1261,8 +1234,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
                   ? `🌀 ARCO: ${obs.label}`
                   : obs.label;
 
-        const labelMetrics = ctx.measureText(labelText);
-        const badgeW = labelMetrics.width + 14;
+        const badgeW = labelText.length * 6.8 + 14;
         const badgeH = 18;
 
         ctx.fillStyle = '#090d16';
@@ -1318,7 +1290,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
       }
 
       // =========================================================================
-      // 6. PERSONAGEM (ESFERA COM ANÉIS, OLHO CIBERNÉTICO OU SKIN EMOJI)
+      // 6. PERSONAGEM (ESFERA COM ANÉIS, OLHO CIBERNÉTICO OU SKIN EMOJI) (Zero GC)
       // =========================================================================
       ctx.save();
       ctx.translate(s.currentX, s.y);
@@ -1370,11 +1342,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         ctx.save();
         ctx.rotate(s.charRotation);
 
-        const emojiGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, s.radius + 3);
-        emojiGrad.addColorStop(0, currentProps.skin.primaryColor || '#ffffff');
-        emojiGrad.addColorStop(0.7, currentProps.skin.glowColor || '#38bdf8');
-        emojiGrad.addColorStop(1, 'rgba(0, 0, 0, 0.3)');
-        ctx.fillStyle = emojiGrad;
+        ctx.fillStyle = currentProps.skin.primaryColor || '#ffffff';
         ctx.beginPath();
         ctx.arc(0, 0, s.radius + 2, 0, Math.PI * 2);
         ctx.fill();
@@ -1389,12 +1357,7 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         ctx.fillText(currentProps.skin.emoji, 0, 1);
         ctx.restore();
       } else {
-        const ballGrad = ctx.createRadialGradient(-s.radius * 0.3, -s.radius * 0.35, 2, 0, 0, s.radius);
-        ballGrad.addColorStop(0, '#ffffff');
-        ballGrad.addColorStop(0.45, charColorsToDraw.primaryColor || '#e2e8f0');
-        ballGrad.addColorStop(1, charColorsToDraw.accentColor || '#94a3b8');
-
-        ctx.fillStyle = ballGrad;
+        ctx.fillStyle = charColorsToDraw.primaryColor || '#38bdf8';
         ctx.beginPath();
         ctx.arc(0, 0, s.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -1544,8 +1507,8 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
   return (
     <div 
       className="relative w-full h-full select-none cursor-pointer overflow-hidden touch-none"
-      onClick={switchWall}
-      onTouchStart={(e) => {
+      onPointerDown={(e) => {
+        // Zero Input Delay - Invocação instantânea no primeiro milissegundo de contato
         e.preventDefault();
         switchWall();
       }}

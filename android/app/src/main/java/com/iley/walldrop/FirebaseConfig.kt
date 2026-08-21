@@ -4,21 +4,15 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * ==============================================================================
  * WALL DROP - CONFIGURAÇÃO DO FIREBASE (MODO HÍBRIDO OFFLINE-FIRST)
  * ==============================================================================
  * 
- * ATENÇÃO - INSTRUÇÃO IMPORTANTE:
- * // SUBSTITUIR google-services.json pelo arquivo real do seu projeto Firebase antes de compilar
- * 
- * Este gerenciador garante que o jogo funcione 100% OFFLINE por padrão:
- * - Se não houver internet, nenhuma chamada de rede é realizada e nenhuma trava ocorre.
- * - Habilita persistência local em disco no Firebase Database / Firestore.
- * - Sincroniza scores com a nuvem em background de forma assíncrona.
+ * Totalmente seguro contra exceções de inicialização e falta de conectividade.
  */
 object FirebaseConfig {
 
@@ -36,21 +30,26 @@ object FirebaseConfig {
         if (isInitialized) return
 
         try {
-            // Ativa persistência offline no Realtime Database
-            val rtdb = FirebaseDatabase.getInstance(DATABASE_URL)
-            try {
-                rtdb.setPersistenceEnabled(true)
-            } catch (e: Exception) {
-                // setPersistenceEnabled só pode ser chamado uma vez antes de qualquer uso
-                Log.d(TAG, "Persistence already enabled: ${e.message}")
+            if (FirebaseApp.getApps(context).isEmpty()) {
+                FirebaseApp.initializeApp(context)
             }
 
-            // Sincroniza o nó de leaderboard localmente para acesso instantâneo sem rede
-            rtdb.getReference("leaderboard").keepSynced(true)
+            // Ativa persistência offline no Realtime Database se disponível
+            try {
+                val rtdb = FirebaseDatabase.getInstance(DATABASE_URL)
+                try {
+                    rtdb.setPersistenceEnabled(true)
+                } catch (e: Throwable) {
+                    Log.d(TAG, "Persistence notice: ${e.message}")
+                }
+                rtdb.getReference("leaderboard").keepSynced(true)
+            } catch (e: Throwable) {
+                Log.w(TAG, "Realtime Database initialization notice: ${e.message}")
+            }
 
             isInitialized = true
-            Log.i(TAG, "Firebase Leaderboard inicializado com sucesso em modo Híbrido.")
-        } catch (e: Exception) {
+            Log.i(TAG, "Firebase Leaderboard inicializado com sucesso.")
+        } catch (e: Throwable) {
             Log.w(TAG, "Firebase rodando em fallback offline seguro: ${e.message}")
         }
     }
@@ -66,7 +65,7 @@ object FirebaseConfig {
             val caps = cm.getNetworkCapabilities(network) ?: return false
             caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
             caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             false
         }
     }
@@ -88,6 +87,7 @@ object FirebaseConfig {
         }
 
         try {
+            init(context)
             val db = FirebaseDatabase.getInstance(DATABASE_URL)
             val ref = db.getReference("leaderboard").push()
             val cleanName = if (playerName.isBlank()) "Drop Player" else playerName.take(20)
@@ -108,11 +108,11 @@ object FirebaseConfig {
                     onComplete?.invoke(true)
                 }
                 .addOnFailureListener { e ->
-                    Log.w(TAG, "Falha no envio da pontuação (salva no cache local do Firebase): ${e.message}")
+                    Log.w(TAG, "Falha no envio da pontuação (salva no cache local): ${e.message}")
                     onComplete?.invoke(false)
                 }
-        } catch (e: Exception) {
-            Log.w(TAG, "Erro assíncrono ao enviar pontuação: ${e.message}")
+        } catch (e: Throwable) {
+            Log.w(TAG, "Erro assíncrono ao enviar pontuação (ignorado com segurança): ${e.message}")
             onComplete?.invoke(false)
         }
     }
