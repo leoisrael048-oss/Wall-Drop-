@@ -991,6 +991,18 @@ export const INITIAL_THEMES: GameTheme[] = [
     obstacleColor: '#22d3ee',
     accentColor: '#ffffff',
   },
+  {
+    id: 'noturno',
+    name: 'MODO NOTURNO',
+    desc: 'Desafio Secreto: Escuridão estelar profunda com névoa lunar e neon luminescente.',
+    price: 0,
+    unlocked: false,
+    bgGradient: ['#000000', '#030712'],
+    wallColor: '#0f172a',
+    wallGlow: '#6366f1',
+    obstacleColor: '#a855f7',
+    accentColor: '#38bdf8',
+  },
 ];
 
 export const INITIAL_ACHIEVEMENTS: AchievementItem[] = [
@@ -1175,6 +1187,19 @@ export const INITIAL_ACHIEVEMENTS: AchievementItem[] = [
     rewardText: '+1.000 Moedas 🌟',
     rewardType: 'coins',
     rewardValue: 1000,
+  },
+  {
+    id: 'ach_secret_night_mode',
+    title: 'DESAFIO SECRETO: MODO NOTURNO',
+    desc: 'Complete 3 partidas consecutivas com mais de 500 pontos cada.',
+    type: 'score',
+    target: 3,
+    progress: 0,
+    completed: false,
+    rewardText: 'Desbloqueia o Modo Noturno Lunar 🌙',
+    rewardType: 'skin',
+    rewardValue: 'noturno',
+    isSpecialViral: true,
   },
 ];
 
@@ -1620,6 +1645,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   language: 'pt',
   playerName: '',
   firstLaunchDone: false,
+  nightModeEnabled: false,
 };
 
 export const DEFAULT_STATS: GameStats = {

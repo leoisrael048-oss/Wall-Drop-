@@ -27,12 +27,18 @@ export class NarratorService {
 
   private constructor() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      this.synth = window.speechSynthesis;
-      this.synth.getVoices();
-      if (typeof this.synth.addEventListener === 'function') {
-        this.synth.addEventListener('voiceschanged', () => {
-          this.synth?.getVoices();
-        });
+      try {
+        this.synth = window.speechSynthesis;
+        this.synth.getVoices();
+        if (typeof this.synth.addEventListener === 'function') {
+          this.synth.addEventListener('voiceschanged', () => {
+            try {
+              this.synth?.getVoices();
+            } catch {}
+          });
+        }
+      } catch (err) {
+        console.warn('SpeechSynthesis init error:', err);
       }
     }
   }
@@ -202,17 +208,35 @@ export class NarratorService {
         return;
       }
 
+      let hasResolved = false;
+      const safeResolve = () => {
+        if (!hasResolved) {
+          hasResolved = true;
+          this.currentUtterance = null;
+          this.currentSpeakingPriority = 0;
+          resolve();
+        }
+      };
+
+      // Failsafe timeout para nunca travar a fila do narrador no Android
+      const failsafeTimer = setTimeout(() => {
+        safeResolve();
+      }, 7000);
+
       try {
-        if (this.synth.speaking || this.synth.pending) {
-          this.synth.cancel();
-        }
-        if (this.synth.paused) {
-          this.synth.resume();
-        }
+        try {
+          if (this.synth.speaking || this.synth.pending) {
+            this.synth.cancel();
+          }
+          if (this.synth.paused) {
+            this.synth.resume();
+          }
+        } catch (_) {}
 
         const cleanText = text.replace(/<[^>]*>/g, '').trim();
         if (!cleanText) {
-          resolve();
+          clearTimeout(failsafeTimer);
+          safeResolve();
           return;
         }
 
@@ -315,23 +339,22 @@ export class NarratorService {
         this.currentSpeakingPriority = priority;
 
         utterance.onend = () => {
-          this.currentUtterance = null;
-          this.currentSpeakingPriority = 0;
-          resolve();
+          clearTimeout(failsafeTimer);
+          safeResolve();
         };
 
         utterance.onerror = (e) => {
           console.warn('NarratorSpeech error caught:', e);
-          this.currentUtterance = null;
-          this.currentSpeakingPriority = 0;
-          resolve();
+          clearTimeout(failsafeTimer);
+          safeResolve();
         };
 
         this.currentUtterance = utterance;
         this.synth.speak(utterance);
       } catch (e) {
         console.warn('Speech synthesis exception caught:', e);
-        resolve();
+        clearTimeout(failsafeTimer);
+        safeResolve();
       }
     });
   }

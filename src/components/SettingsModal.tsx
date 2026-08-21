@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Volume2, VolumeX, Mic, MicOff, Smartphone, Globe, RefreshCw, User, Volume2 as VolumeIcon } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Mic, MicOff, Smartphone, Globe, RefreshCw, User, Volume2 as VolumeIcon, Moon, Lock, Sparkles } from 'lucide-react';
 import { GameSettings, Language } from '../types';
 import { audio } from '../utils/audio';
 import { narratorService } from '../services/narratorService';
 import { NARRATOR_SPEED } from '../services/narratorConfig';
 import { getTranslation, getLanguageFlag } from '../utils/i18n';
+import { getNightModeStatus, setNightModeActive } from '../utils/storage';
 
 interface SettingsModalProps {
   settings: GameSettings;
@@ -307,6 +308,103 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
         </div>
+
+        {/* Night Mode Card (Desafio Secreto) */}
+        {(() => {
+          const nmStatus = getNightModeStatus();
+          const isUnlocked = nmStatus.unlocked;
+          const isActive = settings.nightModeEnabled ?? nmStatus.active;
+
+          const toggleNightMode = () => {
+            if (!isUnlocked) {
+              audio.playSfx('click', settings);
+              return;
+            }
+            audio.playSfx('click', settings);
+            const nextActive = !isActive;
+            setNightModeActive(nextActive);
+            onUpdateSettings({
+              ...settings,
+              nightModeEnabled: nextActive,
+            });
+          };
+
+          return (
+            <div className={`rounded-2xl p-4 flex flex-col gap-2.5 shadow-md border transition-all ${
+              isUnlocked
+                ? isActive
+                  ? 'bg-slate-900/95 border-indigo-500/50 shadow-indigo-500/10 shadow-lg'
+                  : 'bg-slate-900/90 border-slate-800'
+                : 'bg-slate-950/80 border-slate-800/80 opacity-90'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
+                  <div className={`p-1.5 rounded-lg ${isUnlocked ? (isActive ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400') : 'bg-slate-800/60 text-slate-500'}`}>
+                    <Moon className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="flex items-center gap-1.5">
+                      {t('nightMode')}
+                      {isUnlocked && (
+                        <span className="text-[9px] font-extrabold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-md border border-indigo-500/30 uppercase">
+                          Desbloqueado
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      {isUnlocked
+                        ? t('nightModeDesc')
+                        : t('nightModeSecretDesc')}
+                    </span>
+                  </div>
+                </div>
+
+                {isUnlocked ? (
+                  <button
+                    type="button"
+                    onClick={toggleNightMode}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      isActive
+                        ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
+                        : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {isActive ? t('on') : t('off')}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-1 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700/60 text-[11px] font-bold text-amber-400">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>{nmStatus.consecutive500}/3</span>
+                  </div>
+                )}
+              </div>
+
+              {!isUnlocked && (
+                <div className="mt-1 pt-2 border-t border-slate-800/60 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                    <span className="text-amber-400/90 font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-amber-400 inline" />
+                      Desafio Secreto: 3 partidas seguidas &gt; 500 pts
+                    </span>
+                    <span className="text-amber-400">{nmStatus.consecutive500}/3</span>
+                  </div>
+                  <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden flex gap-1 p-0.5 border border-slate-800">
+                    {[1, 2, 3].map((step) => (
+                      <div
+                        key={step}
+                        className={`flex-1 h-full rounded-full transition-all duration-300 ${
+                          nmStatus.consecutive500 >= step
+                            ? 'bg-gradient-to-r from-amber-500 to-indigo-500 shadow-sm shadow-amber-500/50'
+                            : 'bg-slate-800'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Vibration Button */}
         <button

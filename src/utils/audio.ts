@@ -55,10 +55,27 @@ class AudioEngine {
         window.removeEventListener('click', unlockAudio);
       };
 
-      window.addEventListener('pointerdown', unlockAudio, { passive: true });
-      window.addEventListener('touchstart', unlockAudio, { passive: true });
-      window.addEventListener('keydown', unlockAudio, { passive: true });
-      window.addEventListener('click', unlockAudio, { passive: true });
+      // Android WebView Lifecycle: Suspend audio when app is minimized / backgrounded
+      document.addEventListener('visibilitychange', () => {
+        try {
+          if (document.visibilityState === 'hidden') {
+            if (this.ctx && this.ctx.state === 'running') {
+              this.ctx.suspend().catch(() => {});
+            }
+            if (this.synth) {
+              try {
+                this.synth.cancel();
+              } catch (_) {}
+            }
+          } else if (document.visibilityState === 'visible') {
+            if (this.ctx && this.ctx.state === 'suspended' && this.userInteracted) {
+              this.ctx.resume().catch(() => {});
+            }
+          }
+        } catch (e) {
+          console.warn('[AudioEngine visibilitychange catch]:', e);
+        }
+      });
     }
   }
 

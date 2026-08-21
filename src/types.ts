@@ -155,7 +155,7 @@ export interface GameDeathEffect {
   rarity?: ItemRarity;
 }
 
-export type ThemeId = 'neon' | 'tempestade' | 'espaco' | 'gelo';
+export type ThemeId = 'neon' | 'tempestade' | 'espaco' | 'gelo' | 'noturno';
 
 export interface GameTheme {
   id: ThemeId;
@@ -346,6 +346,13 @@ export interface GameSettings {
   language: Language;
   playerName?: string;
   firstLaunchDone?: boolean;
+  nightModeEnabled?: boolean;
+}
+
+export interface NightModeStatus {
+  consecutive500: number;
+  unlocked: boolean;
+  active: boolean;
 }
 
 export interface GameStats {

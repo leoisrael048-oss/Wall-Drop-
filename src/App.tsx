@@ -68,7 +68,8 @@ import {
   getPlayerUpgrades,
   upgradePlayerAbility,
   getPreviousRun,
-  savePreviousRun
+  savePreviousRun,
+  updateNightModeStreak
 } from './utils/storage';
 import { audio } from './utils/audio';
 
@@ -292,7 +293,14 @@ export default function App() {
       stats.totalGames, 
       stats.totalCoinsCollected
     );
-    setAchievementsState(updatedAch);
+
+    // Update Night Mode secret challenge streak (3 consecutive games > 500)
+    const nightModeResult = updateNightModeStreak(finalScore);
+    if (nightModeResult.newlyUnlocked) {
+      audio.speakNarrator('unlock', settings);
+    }
+    const finalAch = getAchievements();
+    setAchievementsState(finalAch);
 
     // Save and update previous run summary for Main Menu
     savePreviousRun(finalScore, finalCoins);
@@ -354,7 +362,14 @@ export default function App() {
       stats.totalGames, 
       stats.totalCoinsCollected
     );
-    setAchievementsState(updatedAch);
+
+    // Update Night Mode secret challenge streak (3 consecutive games > 500)
+    const nightModeResult = updateNightModeStreak(finalScore);
+    if (nightModeResult.newlyUnlocked) {
+      audio.speakNarrator('unlock', settings);
+    }
+    const finalAch = getAchievements();
+    setAchievementsState(finalAch);
 
     savePreviousRun(finalScore, finalCoins);
     setPreviousRun({

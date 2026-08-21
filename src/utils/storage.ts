@@ -57,6 +57,9 @@ const KEYS = {
   ACHIEVEMENTS: 'walldrop_achievements',
   PREVIOUS_RUN: 'walldrop_previous_run',
   CELEBRATION_NOTICE: 'walldrop_celebration_notice',
+  NIGHT_MODE_STREAK: 'walldrop_night_mode_streak',
+  NIGHT_MODE_UNLOCKED: 'walldrop_night_mode_unlocked',
+  NIGHT_MODE_ACTIVE: 'walldrop_night_mode_active',
 };
 
 // --- CELEBRATION NOTICES ---
@@ -901,6 +904,97 @@ export const upgradePlayerAbility = (abilityKey: keyof PlayerUpgrades, cost: num
     return false;
   } catch {
     return false;
+  }
+};
+
+// --- SECRET NIGHT MODE (MODO NOTURNO) ---
+export const getNightModeStatus = (): { consecutive500: number; unlocked: boolean; active: boolean } => {
+  try {
+    const streakStr = localStorage.getItem(KEYS.NIGHT_MODE_STREAK);
+    const streak = streakStr ? parseInt(streakStr, 10) : 0;
+    const unlocked = localStorage.getItem(KEYS.NIGHT_MODE_UNLOCKED) === 'true' || getUnlockedThemes().includes('noturno');
+    const settings = getSettings();
+    const active = settings.nightModeEnabled ?? (localStorage.getItem(KEYS.NIGHT_MODE_ACTIVE) === 'true');
+    return { consecutive500: streak, unlocked, active };
+  } catch {
+    return { consecutive500: 0, unlocked: false, active: false };
+  }
+};
+
+export const setNightModeActive = (active: boolean): void => {
+  try {
+    localStorage.setItem(KEYS.NIGHT_MODE_ACTIVE, active ? 'true' : 'false');
+    const settings = getSettings();
+    saveSettings({ ...settings, nightModeEnabled: active });
+  } catch (e) {
+    console.error('Failed to set night mode active', e);
+  }
+};
+
+export const unlockNightMode = (): void => {
+  try {
+    localStorage.setItem(KEYS.NIGHT_MODE_UNLOCKED, 'true');
+    unlockTheme('noturno');
+    const achievements = getAchievements();
+    const updated = achievements.map((a) => {
+      if (a.id === 'ach_secret_night_mode') {
+        return { ...a, progress: 3, completed: true, unlockedAt: Date.now() };
+      }
+      return a;
+    });
+    saveAchievements(updated);
+  } catch (e) {
+    console.error('Failed to unlock night mode', e);
+  }
+};
+
+export const updateNightModeStreak = (score: number): {
+  consecutive500: number;
+  unlocked: boolean;
+  newlyUnlocked: boolean;
+  scoreQualified: boolean;
+} => {
+  try {
+    const currentStatus = getNightModeStatus();
+    let newStreak = currentStatus.consecutive500;
+    let newlyUnlocked = false;
+    const scoreQualified = score > 500;
+
+    if (scoreQualified) {
+      newStreak += 1;
+    } else {
+      newStreak = 0; // Reset streak if match score is <= 500
+    }
+
+    localStorage.setItem(KEYS.NIGHT_MODE_STREAK, newStreak.toString());
+
+    let isUnlocked = currentStatus.unlocked;
+    if (newStreak >= 3 && !isUnlocked) {
+      isUnlocked = true;
+      newlyUnlocked = true;
+      unlockNightMode();
+    }
+
+    // Update achievement progress
+    const achievements = getAchievements();
+    const updated = achievements.map((a) => {
+      if (a.id === 'ach_secret_night_mode') {
+        const prog = Math.min(3, isUnlocked ? 3 : newStreak);
+        return { ...a, progress: prog, completed: isUnlocked || prog >= 3 };
+      }
+      return a;
+    });
+    saveAchievements(updated);
+
+    return {
+      consecutive500: newStreak,
+      unlocked: isUnlocked,
+      newlyUnlocked,
+      scoreQualified,
+    };
+  } catch (e) {
+    console.error('Failed to update night mode streak', e);
+    return { consecutive500: 0, unlocked: false, newlyUnlocked: false, scoreQualified: false };
   }
 };
 

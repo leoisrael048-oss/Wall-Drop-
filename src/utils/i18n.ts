@@ -76,6 +76,13 @@ export const TRANSLATIONS = {
     voiceSpeed: 'Velocidade da Voz',
     vibration: 'Vibração',
     language: 'Idioma',
+    nightMode: 'Modo Noturno',
+    nightModeDesc: 'Visual escuro lunar profundo de alto contraste com estrelas cintilantes.',
+    nightModeSecretChallenge: 'Desafio Secreto: Modo Noturno',
+    nightModeSecretDesc: 'Complete 3 partidas consecutivas com mais de 500 pontos cada.',
+    nightModeUnlockedToast: '🌙 DESAFIO SECRETO DESBLOQUEADO: MODO NOTURNO!',
+    nightModeLockedMsg: 'Complete 3 partidas seguidas com mais de 500 pontos.',
+    consecutiveGames500: 'Partidas Consecutivas > 500',
     resetProgress: 'RESETAR PROGRESSO',
     resetConfirmMsg: 'Tem certeza? Todo o progresso, moedas e itens serão apagados!',
     cancel: 'CANCELAR',
@@ -1125,6 +1132,11 @@ const ACHIEVEMENT_DESCS: Record<string, Partial<Record<Language, { title: string
     pt: { title: 'TEIMOSO(A) SUPREMO(A)', desc: 'Perdeu 20 vezes seguidas sem desistir. Isso é dedicação ou teimosia? As duas coisas.', rewardText: '+150 Moedas 🏆' },
     en: { title: 'SUPREME STUBBORN', desc: 'Lost 20 times in a row without giving up. Dedication or stubbornness? Both.', rewardText: '+150 Coins 🏆' },
     es: { title: 'TERCO(A) SUPREMO(A)', desc: 'Perdiste 20 veces seguidas sin rendirte. ¿Dedicación o terquedad? Ambas cosas.', rewardText: '+150 Monedas 🏆' },
+  },
+  ach_secret_night_mode: {
+    pt: { title: 'DESAFIO SECRETO: MODO NOTURNO', desc: 'Complete 3 partidas consecutivas com mais de 500 pontos cada.', rewardText: 'Desbloqueia Modo Noturno 🌙' },
+    en: { title: 'SECRET CHALLENGE: NIGHT MODE', desc: 'Complete 3 consecutive matches with over 500 points each.', rewardText: 'Unlocks Night Mode 🌙' },
+    es: { title: 'DESAFÍO SECRETO: MODO NOCTURNO', desc: 'Completa 3 partidas consecutivas con más de 500 puntos cada una.', rewardText: 'Desbloquea Modo Nocturno 🌙' },
   },
 };
 

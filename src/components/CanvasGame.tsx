@@ -148,7 +148,22 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
     obstacleColor: skin?.obstacleColor || '#f43f5e',
   };
 
-  const activeVisualTheme = customTheme?.enabled
+  const nightModeTheme: GameTheme = {
+    id: 'noturno',
+    name: 'Modo Noturno',
+    desc: 'Desafio Secreto: Escuridão estelar profunda com névoa lunar e neon luminescente.',
+    price: 0,
+    unlocked: true,
+    bgGradient: ['#000000', '#030712'],
+    wallColor: '#090d16',
+    wallGlow: '#6366f1',
+    obstacleColor: '#a855f7',
+    accentColor: '#38bdf8',
+  };
+
+  const activeVisualTheme = settings.nightModeEnabled
+    ? nightModeTheme
+    : customTheme?.enabled
     ? {
         id: 'custom_theme',
         name: 'Custom Abyss',
