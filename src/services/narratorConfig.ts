@@ -23,7 +23,7 @@ export interface NarratorConfigOptions {
 // 🔥 NOVO: Presets de Voz Viciante
 // ============================================================
 export const VICIANTE_VOICE_PRESETS = {
-  // Voz padrão masculina - já existente
+  // Voz padrão masculina
   male: {
     speakingRate: 1.35,
     pitch: -1.0,
@@ -126,27 +126,6 @@ export const GOOGLE_TTS_MALE_VOICES: Record<string, GoogleTTSVoiceConfig> = {
   },
 };
 
-// ============================================================
-// 🔥 NOVO: Configuração de Vozes Femininas (opcional)
-// ============================================================
-export const GOOGLE_TTS_FEMALE_VOICES: Record<string, GoogleTTSVoiceConfig> = {
-  pt: {
-    languageCode: 'pt-BR',
-    name: 'pt-BR-Neural2-A',
-    ssmlGender: 'FEMALE',
-  },
-  en: {
-    languageCode: 'en-US',
-    name: 'en-US-Neural2-F',
-    ssmlGender: 'FEMALE',
-  },
-  es: {
-    languageCode: 'es-ES',
-    name: 'es-ES-Neural2-C',
-    ssmlGender: 'FEMALE',
-  },
-};
-
 export const DEFAULT_NARRATOR_CONFIG: NarratorConfigOptions = {
   apiEndpoint: typeof process !== 'undefined' && process.env?.GOOGLE_CLOUD_TTS_ENDPOINT 
     ? process.env.GOOGLE_CLOUD_TTS_ENDPOINT 
@@ -155,7 +134,7 @@ export const DEFAULT_NARRATOR_CONFIG: NarratorConfigOptions = {
     ? process.env.GOOGLE_CLOUD_TTS_API_KEY 
     : '',
   speakingRate: NARRATOR_SPEED,
-  pitch: -1.0,  // Padrão: voz masculina grave
+  pitch: -1.0,
   useGoogleCloudApi: false,
   cacheEnabled: true,
 };
@@ -180,103 +159,23 @@ export class NarratorConfig {
   // 🔥 NOVOS MÉTODOS PARA VOZ VICIANTE
   // ============================================================
 
-  // Obtém configuração de voz viciante
   public static getVicianteVoice(style: keyof typeof VICIANTE_VOICE_PRESETS = 'viciante'): any {
     return VICIANTE_VOICE_PRESETS[style] || VICIANTE_VOICE_PRESETS.viciante;
   }
 
-  // Aplica estilo de voz às configurações
   public static applyVoiceStyle(style: keyof typeof VICIANTE_VOICE_PRESETS): void {
     this.currentVoiceStyle = style;
     const preset = this.getVicianteVoice(style);
     
     this.options.speakingRate = preset.speakingRate;
     this.options.pitch = preset.pitch;
-    
-    // Atualiza também para Google Cloud TTS se aplicável
-    // Nota: volume e efeitos são tratados no narratorService
   }
 
-  // Obtém o estilo de voz atual
   public static getCurrentVoiceStyle(): string {
     return this.currentVoiceStyle;
   }
 
-  // Lista todos os estilos disponíveis
   public static getAvailableVoiceStyles(): string[] {
     return Object.keys(VICIANTE_VOICE_PRESETS);
   }
-
-  // Obtém voz feminina por idioma
-  public static getFemaleVoiceForLanguage(lang: string): GoogleTTSVoiceConfig {
-    return GOOGLE_TTS_FEMALE_VOICES[lang] || GOOGLE_TTS_FEMALE_VOICES.en || GOOGLE_TTS_FEMALE_VOICES.pt;
-  }
-
-  // Configuração de voz por gênero
-  public static getVoiceByGender(lang: string, gender: 'MALE' | 'FEMALE'): GoogleTTSVoiceConfig {
-    if (gender === 'FEMALE') {
-      return this.getFemaleVoiceForLanguage(lang);
-    }
-    return this.getVoiceForLanguage(lang);
-  }
-
-  // ============================================================
-  // 🔥 SISTEMA DE VÍCIO - Frases de Recompensa
-  // ============================================================
-  
-  private static addictionLevel: number = 0;
-  private static maxAddictionLevel: number = 10;
-
-  public static incrementAddiction(): void {
-    this.addictionLevel = Math.min(this.addictionLevel + 1, this.maxAddictionLevel);
-  }
-
-  public static getAddictionLevel(): number {
-    return this.addictionLevel;
-  }
-
-  public static resetAddiction(): void {
-    this.addictionLevel = 0;
-  }
-
-  public static isAddicted(): boolean {
-    return this.addictionLevel >= this.maxAddictionLevel;
-  }
-
-  // ============================================================
-  // 🔥 CONFIGURAÇÕES PARA ANÚNCIOS
-  // ============================================================
-  
-  public static getAdRewardConfig() {
-    return {
-      minAdsForReward: 3,
-      minPhrasesForReward: 10,
-      exclusivePhraseChance: 0.3, // 30% chance de frase exclusiva
-    };
-  }
-}
-
-// ============================================================
-// 🔥 EXPORTAÇÃO DO NARRADOR VICIANTE
-// ============================================================
-
-// Exporta configuração pronta para uso
-export const VICIANTE_CONFIG = {
-  // Presets de voz
-  voicePresets: VICIANTE_VOICE_PRESETS,
-  
-  // Métodos auxiliares
-  getVoice: NarratorConfig.getVicianteVoice.bind(NarratorConfig),
-  applyStyle: NarratorConfig.applyVoiceStyle.bind(NarratorConfig),
-  
-  // Sistema de vício
-  addiction: {
-    level: () => NarratorConfig.getAddictionLevel(),
-    increment: NarratorConfig.incrementAddiction.bind(NarratorConfig),
-    reset: NarratorConfig.resetAddiction.bind(NarratorConfig),
-    isAddicted: NarratorConfig.isAddicted.bind(NarratorConfig),
-  },
-  
-  // Configuração de anúncios
-  adReward: NarratorConfig.getAdRewardConfig(),
-};
+      }
