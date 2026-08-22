@@ -78,7 +78,10 @@ export const CelebrationNotification: React.FC<CelebrationNotificationProps> = (
         </div>
 
         {/* Dismiss Button */}
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={(e) => {
             e.stopPropagation();
             onDismiss();
@@ -87,29 +90,35 @@ export const CelebrationNotification: React.FC<CelebrationNotificationProps> = (
           title="Fechar notificação"
         >
           <X className="w-4 h-4" />
-        </button>
+        </motion.button>
       </div>
 
       {/* Motivational Retention Action Bar */}
       <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.94 }}
           onClick={triggerCelebration}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 text-amber-300 text-[10px] font-black transition-all hover:scale-105 active:scale-95 shadow-sm"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-950/70 hover:bg-slate-900 border border-white/10 text-amber-300 text-[10px] font-black transition-all shadow-sm"
         >
           <PartyPopper className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
           <span>Comemorar! 🎉</span>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.94 }}
           onClick={() => {
             audio.playSfx('click', settings);
             onOpenRanking();
           }}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-[11px] transition-all hover:scale-105 active:scale-95 shadow-md shadow-amber-500/30 ml-auto"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-[11px] transition-all shadow-md shadow-amber-500/30 ml-auto"
         >
           <span>Ver Ranking</span>
           <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        </motion.button>
       </div>
     </motion.div>
   );

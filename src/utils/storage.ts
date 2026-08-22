@@ -60,6 +60,7 @@ const KEYS = {
   NIGHT_MODE_STREAK: 'walldrop_night_mode_streak',
   NIGHT_MODE_UNLOCKED: 'walldrop_night_mode_unlocked',
   NIGHT_MODE_ACTIVE: 'walldrop_night_mode_active',
+  NARRATOR_UNLOCKED: 'walldrop_narrator_unlocked',
 };
 
 // --- CELEBRATION NOTICES ---
@@ -998,6 +999,36 @@ export const updateNightModeStreak = (score: number): {
   }
 };
 
+// --- NARRADOR VICIANTE VIP UNLOCK (3000 COINS) ---
+export const getNarratorUnlocked = (): boolean => {
+  try {
+    return localStorage.getItem(KEYS.NARRATOR_UNLOCKED) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const setNarratorUnlocked = (unlocked: boolean): void => {
+  try {
+    localStorage.setItem(KEYS.NARRATOR_UNLOCKED, unlocked ? 'true' : 'false');
+  } catch (e) {
+    console.error('Failed to set narrator unlocked state', e);
+  }
+};
+
+export const unlockNarrator = (cost: number = 3000): boolean => {
+  try {
+    if (getNarratorUnlocked()) return true;
+    if (spendCoins(cost)) {
+      setNarratorUnlocked(true);
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 export const resetAllData = (): void => {
   try {
     Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
@@ -1005,5 +1036,6 @@ export const resetAllData = (): void => {
     console.error('Failed to reset storage', e);
   }
 };
+
 
 

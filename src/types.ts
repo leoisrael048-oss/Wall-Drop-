@@ -8,7 +8,8 @@ export type GameScreen =
   | 'challenge' 
   | 'ranking' 
   | 'settings'
-  | 'workshop';
+  | 'workshop'
+  | 'narrator';
 
 export type ItemRarity = 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
 

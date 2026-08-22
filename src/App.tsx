@@ -69,7 +69,9 @@ import {
   upgradePlayerAbility,
   getPreviousRun,
   savePreviousRun,
-  updateNightModeStreak
+  updateNightModeStreak,
+  getNarratorUnlocked,
+  unlockNarrator
 } from './utils/storage';
 import { audio } from './utils/audio';
 
@@ -90,6 +92,7 @@ import { OnboardingModal } from './components/OnboardingModal';
 import { IntroAnimation } from './components/IntroAnimation';
 import { CustomizerModal } from './components/CustomizerModal';
 import { ReplayModal } from './components/ReplayModal';
+import { NarratorVicianteModal } from './components/NarratorVicianteModal';
 import { ScreenTransitionParticles } from './components/ScreenTransitionParticles';
 import { replayRecorder } from './services/replayRecorder';
 import { firebaseLeaderboard } from './services/firebaseLeaderboard';
@@ -130,6 +133,18 @@ export default function App() {
   const [customTheme, setCustomThemeState] = useState<CustomThemeConfig>(getCustomThemeConfig());
   const [playerUpgrades, setPlayerUpgradesState] = useState<PlayerUpgrades>(getPlayerUpgrades());
   const [previousRun, setPreviousRun] = useState<PreviousRunData | null>(() => getPreviousRun());
+  const [narratorUnlocked, setNarratorUnlockedState] = useState<boolean>(() => getNarratorUnlocked());
+
+  const handleUnlockNarrator = (): boolean => {
+    if (coins < 3000) return false;
+    const success = unlockNarrator(3000);
+    if (success) {
+      setNarratorUnlockedState(true);
+      setCoinsState(getCoins());
+      return true;
+    }
+    return false;
+  };
 
   // In-Game state
   const [gameKey, setGameKey] = useState<number>(0);
@@ -931,6 +946,26 @@ export default function App() {
                 settings={settings}
                 onUpdateSettings={handleUpdateSettings}
                 onResetData={handleResetData}
+                onBack={() => setScreen('menu')}
+              />
+            </motion.div>
+          )}
+
+          {/* Narrador Viciante Soundboard & Screen */}
+          {screen === 'narrator' && (
+            <motion.div
+              key="narrator"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="w-full h-full relative z-10"
+            >
+              <NarratorVicianteModal
+                settings={settings}
+                coins={coins}
+                isUnlocked={narratorUnlocked}
+                onUnlock={handleUnlockNarrator}
                 onBack={() => setScreen('menu')}
               />
             </motion.div>

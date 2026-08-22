@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { ArrowLeft, Download, Copy, Check, Share2, MessageCircle, Send, Twitter, Sparkles } from 'lucide-react';
+import { motion } from 'motion/react';
 import { GameSettings } from '../types';
 import { audio } from '../utils/audio';
 import { getTranslation } from '../utils/i18n';
@@ -303,16 +304,19 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({
       <div className="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-2xl flex flex-col items-center my-auto">
         {/* Top Header */}
         <div className="w-full flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => {
               audio.playSfx('click', settings);
               onBack();
             }}
-            className="p-2 bg-slate-950 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1.5 text-xs font-semibold"
+            className="p-2 bg-slate-950 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all shadow-md flex items-center gap-1.5 text-xs font-semibold"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t('back')}</span>
-          </button>
+          </motion.button>
 
           <h2 className="text-xs font-black text-slate-200 tracking-widest uppercase flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -367,57 +371,75 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({
 
         {/* 1-Tap Social Share Buttons */}
         <div className="w-full grid grid-cols-3 gap-2 mb-3">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={handleWhatsAppShare}
-            className="py-2.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+            className="py-2.5 px-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
           >
             <MessageCircle className="w-4 h-4 text-emerald-400" />
             <span>WhatsApp</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={handleTelegramShare}
-            className="py-2.5 px-2 bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+            className="py-2.5 px-2 bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
           >
             <Send className="w-4 h-4 text-sky-400" />
             <span>Telegram</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={handleTwitterShare}
-            className="py-2.5 px-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+            className="py-2.5 px-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
           >
             <Twitter className="w-4 h-4 text-blue-400" />
             <span>X (Twitter)</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Primary Action Buttons */}
         <div className="w-full flex flex-col gap-2">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleNativeShare}
-            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all active:scale-95 uppercase tracking-wider"
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all uppercase tracking-wider"
           >
             <Share2 className="w-4 h-4" />
             <span>{t('shareNow')}</span>
-          </button>
+          </motion.button>
 
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.94 }}
               onClick={handleCopyText}
-              className="py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+              className="py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
               <span>{copied ? t('copied') : t('copyText')}</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.94 }}
               onClick={handleDownloadImage}
-              className="py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+              className="py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
             >
               <Download className="w-4 h-4 text-amber-400" />
               <span>{t('downloadImage')}</span>
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

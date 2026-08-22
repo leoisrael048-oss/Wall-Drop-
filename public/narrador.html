@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🎙️ NARRADOR VICIANTE - WALL DROP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at center top, #1e0836 0%, #080314 50%, #020108 100%);
+      color: #ffffff;
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Background Ambient Glows */
+    .glow-sphere {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: 5%; left: 15%; width: 250px; height: 250px; background: rgba(168, 85, 247, 0.15); }
+    .glow-2 { bottom: 10%; right: 15%; width: 280px; height: 280px; background: rgba(6, 182, 212, 0.15); }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+      gap: 14px;
+      margin: auto 0;
+    }
+
+    /* Language Switcher Bar */
+    .lang-bar {
+      display: flex;
+      gap: 6px;
+      background: rgba(15, 8, 30, 0.85);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 4px 8px;
+      border-radius: 20px;
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+    }
+    .lang-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #ffffff;
+      opacity: 0.6;
+      transition: all 0.2s ease;
+    }
+    .lang-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    .lang-btn.active {
+      opacity: 1;
+      background: rgba(168, 85, 247, 0.4);
+      border-color: #a66cff;
+      box-shadow: 0 0 10px rgba(166, 108, 255, 0.6);
+      transform: scale(1.05);
+    }
+
+    /* Header & Titles */
+    .header {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #ff6bd6, #a66cff, #00d2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(166, 108, 255, 0.6);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffb347;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: blink 1.2s infinite ease-in-out;
+      text-shadow: 0 0 10px rgba(255, 179, 71, 0.8);
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.98); }
+    }
+
+    /* Display Box with Neon Border */
+    .display-card {
+      width: 100%;
+      min-height: 120px;
+      background: rgba(10, 5, 22, 0.85);
+      border: 2px solid #a66cff;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 0 25px rgba(166, 108, 255, 0.3);
+      backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .category-tag {
+      position: absolute;
+      top: -12px;
+      padding: 2px 14px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #000000;
+      background: #a66cff;
+      box-shadow: 0 0 12px rgba(166, 108, 255, 0.8);
+      display: none;
+    }
+
+    .phrase-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.4;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    /* 8-Grid of Neon Buttons */
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .neon-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid;
+      border-radius: 16px;
+      padding: 12px 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .neon-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.25);
+    }
+
+    .neon-btn:active {
+      transform: translateY(1px) scale(0.96);
+    }
+
+    .neon-btn.active-narrating {
+      animation: pulseBtn 0.8s infinite alternate;
+    }
+
+    @keyframes pulseBtn {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.04); filter: brightness(1.5); }
+    }
+
+    /* Footer & Addiction Bar */
+    .footer {
+      width: 100%;
+      background: rgba(10, 5, 22, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00d2ff, #a66cff, #ff6bd6);
+      box-shadow: 0 0 10px rgba(255, 107, 214, 0.8);
+      transition: width 0.4s ease;
+    }
+
+    /* Typewriter Cursor */
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: 16px;
+      background: #00d2ff;
+      margin-left: 4px;
+      animation: blinkCursor 0.6s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* CINEMATIC 3S PROCESSING OVERLAY */
+    .cinematic-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 1, 10, 0.96);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .cinematic-box {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(180deg, rgba(20, 10, 40, 0.95) 0%, rgba(8, 3, 18, 0.98) 100%);
+      border: 2px solid #a66cff;
+      border-radius: 28px;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(166, 108, 255, 0.5), inset 0 0 30px rgba(0,0,0,0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cinematic-badge {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 3px 12px;
+      border-radius: 20px;
+      background: #a66cff;
+      color: #000;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .reactor-wrapper {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reactor-ring-outer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px dashed #00d2ff;
+      animation: spinReactor 2.5s linear infinite;
+    }
+
+    .reactor-ring-inner {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 2px dotted #ff6bd6;
+      animation: spinReactorReverse 3.5s linear infinite;
+    }
+
+    .reactor-core {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #a66cff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 0 25px #a66cff;
+      animation: pulseCore 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes spinReactor {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spinReactorReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    @keyframes pulseCore {
+      0% { transform: scale(0.88); opacity: 0.7; }
+      100% { transform: scale(1.12); opacity: 1; }
+    }
+
+    .cinematic-category-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 17px;
+      font-weight: 900;
+      color: #FFF;
+      margin-top: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .cinematic-log {
+      font-size: 11px;
+      font-weight: 700;
+      color: #00d2ff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 10px 0;
+      height: 18px;
+    }
+
+    .cinematic-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 6px;
+    }
+
+    .cinematic-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #a66cff;
+      box-shadow: 0 0 15px #a66cff;
+      transition: width 0.05s linear;
+    }
+
+    .cinematic-pct-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 10px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Glows -->
+  <div class="glow-sphere glow-1"></div>
+  <div class="glow-sphere glow-2"></div>
+
+  <!-- CINEMATIC 3S PROCESSING OVERLAY -->
+  <div class="cinematic-overlay" id="cinematicOverlay">
+    <div class="cinematic-box" id="cinematicBox">
+      <div class="cinematic-badge" id="cinematicBadge">PROCESSADOR CINEMATOGRÁFICO DE VOZ</div>
+      <div class="reactor-wrapper">
+        <div class="reactor-ring-outer" id="reactorRingOuter"></div>
+        <div class="reactor-ring-inner" id="reactorRingInner"></div>
+        <div class="reactor-core" id="reactorCore">🚀</div>
+      </div>
+      <div class="cinematic-category-title" id="cinematicCategoryTitle">INICIAR QUEDA</div>
+      <div class="cinematic-log" id="cinematicLog">SINTONIZANDO FREQUÊNCIA QUÂNTICA...</div>
+      <div class="cinematic-bar-bg">
+        <div class="cinematic-bar-fill" id="cinematicBarFill"></div>
+      </div>
+      <div class="cinematic-pct-row">
+        <span id="cinematicInitLabel">INICIALIZANDO SINTETIZADOR</span>
+        <span id="cinematicPct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Language Switcher Bar -->
+    <div class="lang-bar" id="langBar">
+      <button class="lang-btn active" onclick="switchLanguage('pt')">🇧🇷 PT</button>
+      <button class="lang-btn" onclick="switchLanguage('en')">🇺🇸 EN</button>
+      <button class="lang-btn" onclick="switchLanguage('es')">🇪🇸 ES</button>
+      <button class="lang-btn" onclick="switchLanguage('fr')">🇫🇷 FR</button>
+      <button class="lang-btn" onclick="switchLanguage('de')">🇩🇪 DE</button>
+      <button class="lang-btn" onclick="switchLanguage('it')">🇮🇹 IT</button>
+      <button class="lang-btn" onclick="switchLanguage('ja')">🇯🇵 JA</button>
+      <button class="lang-btn" onclick="switchLanguage('zh')">🇨🇳 ZH</button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <h1 class="title" id="mainTitle">🎙️ NARRADOR VICIANTE</h1>
+      <p class="subtitle" id="mainSubtitle">🔥 O ABISMO TE CHAMA...</p>
+    </div>
+
+    <!-- Display Card -->
+    <div class="display-card" id="displayCard">
+      <div class="category-tag" id="categoryTag">INICIAR QUEDA</div>
+      <div class="phrase-text" id="phraseText">CLIQUE EM UM BOTÃO ABAIXO PARA OUVIR O NARRADOR...</div>
+    </div>
+
+    <!-- 8 Neon Interactive Buttons -->
+    <div class="buttons-grid" id="buttonsGrid"></div>
+
+    <!-- Footer Stats & Addiction Progress -->
+    <div class="footer">
+      <div class="stats-row">
+        <span id="phrasesCountLabel">✨ FRASES OUVIDAS: <b id="countDisplay">0</b></span>
+        <span style="color: #ffb347;" id="addictionStatus">NÍVEL DE VÍCIO: 0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeLang = 'pt';
+
+    const MULTI_LANG_DATA = [
+      {
+        id: 'start',
+        color: '#FF6B6B',
+        emoji: '🚀',
+        labels: {
+          pt: 'INICIAR QUEDA', en: 'START DROP', es: 'INICIAR CAÍDA', fr: 'LANCER LA DESCENTE',
+          de: 'STURZ STARTEN', it: 'INIZIA LA CADUTA', ja: '落下開始', zh: '开始下落'
+        },
+        phrases: {
+          pt: [
+            'O ABISMO SE ABRE PARA VOCÊ! SINTA O PODER!',
+            'AS PAREDES TREMEM! ELAS SABEM QUE VOCÊ CHEGOU!',
+            'A QUEDA NUNCA VIU ALGO ASSIM! VOCÊ É ÚNICO!'
+          ],
+          en: [
+            'THE ABYSS OPENS FOR YOU! FEEL THE POWER!',
+            'THE WALLS ARE SHAKING! THEY KNOW YOU HAVE ARRIVED!',
+            'THE DROP HAS NEVER SEEN THIS! YOU ARE ONE OF A KIND!'
+          ],
+          es: [
+            '¡EL ABISMO SE ABRE ANTE TI! ¡SIENTE EL PODER!',
+            '¡LAS PAREDES TIEMBLAN! ¡SABEN QUE HAS LLEGADO!',
+            '¡LA CAÍDA NUNCA VIO ALGO IGUAL! ¡ERES ÚNICO!'
+          ],
+          fr: [
+            "L'ABÎME S'OUVRE POUR VOUS ! RESSENTEZ LA PUISSANCE !",
+            "LES MURS TREMBLENT ! ILS SAVENT QUE VOUS ÊTES LÀ !",
+            "LA CHUTE N'A JAMAIS VU ÇA ! VOUS ÊTES UNIQUE !"
+          ],
+          de: [
+            'DER ABGRUND ÖFFNET SICH FÜR DICH! SPÜRE DIE MACHT!',
+            'DIE WÄNDE ZITTERN! SIE WISSEN, DASS DU DA BIST!',
+            'DER STURZ HAT SO ETWAS NOCH NIE GESEHEN! DU BIST EINZIGARTIG!'
+          ],
+          it: [
+            "L'ABISSO SI APRE PER TE! SENTI IL POTERE!",
+            "LE PARETI TREMANO! SANNO CHE SEI ARRIVATO!",
+            "LA CADUTA NON HA MAI VISTO QUESTO! SEI UNICO!"
+          ],
+          ja: [
+            '奈落が君のために開く！その力を感じろ！',
+            '壁が震えている！お前の降臨を知っているのだ！',
+            'この落下は前代未聞だ！お前は唯一無二だ！'
+          ],
+          zh: [
+            '深渊为你敞开！感受这无尽的力量！',
+            '墙壁在颤抖！它们知道你已经降临！',
+            '前所未有的极限下落！你是独一无二的！'
+          ]
+        }
+      },
+      {
+        id: 'combo10',
+        color: '#FFD93D',
+        emoji: '💥',
+        labels: {
+          pt: 'COMBO 10', en: 'COMBO 10', es: 'COMBO 10', fr: 'COMBO 10',
+          de: 'COMBO 10', it: 'COMBO 10', ja: 'コンボ10', zh: '10连击'
+        },
+        phrases: {
+          pt: [
+            'RECORDE HISTÓRICO! VOCÊ ESCREVEU SEU NOME NAS ESTRELAS!',
+            '10 SEGUIDAS! MODO DEMÔNIO!',
+            'VOCÊ QUEBROU BARREIRAS! VOCÊ QUEBROU RECORDES!'
+          ],
+          en: [
+            'HISTORIC RECORD! YOU WROTE YOUR NAME IN THE STARS!',
+            '10 IN A ROW! BEAST MODE UNLOCKED!',
+            'YOU BROKE BARRIERS! YOU SHATTERED ALL RECORDS!'
+          ],
+          es: [
+            '¡RÉCORD HISTÓRICO! ¡ESCRIBISTE TU NOMBRE EN LAS ESTRELLAS!',
+            '¡10 SEGUIDAS! ¡MODO DEMONIO ACTIVADO!',
+            '¡ROMPISTE BARRERAS! ¡DESTROZASTE TODOS LOS RÉCORDS!'
+          ],
+          fr: [
+            'RECORD HISTORIQUE ! GRAVÉ DANS LES ÉTOILES !',
+            '10 D’AFFILÉE ! MODE DÉMON DÉVERROUILLÉ !',
+            'VOUS AVEZ BRISÉ TOUTES LES LIMITES ET RECORDS !'
+          ],
+          de: [
+            'HISTORISCHER REKORD! DEIN NAME STEHT IN DEN STERNEN!',
+            '10 IN FOLGE! DÄMONEN-MODUS AKTIVIERT!',
+            'DU HAST ALLE GRENZEN UND REKORDE GEBROCHEN!'
+          ],
+          it: [
+            'RECORD STORICO! HAI SCRITTO IL TUO NOME NELLE STELLE!',
+            '10 DI FILA! MODALITÀ DEMONE!',
+            'HAI INFRANTO OGNI LIMITE E RECORD!'
+          ],
+          ja: [
+            '歴史的記録！星々にお前の名を刻んだ！',
+            '10連続突破！鬼神モード突入！',
+            'すべての限界と記録を粉砕した！'
+          ],
+          zh: [
+            '历史纪录诞生！你的名字已被刻在星空之上！',
+            '连续10次通过！恶魔狂暴模式启动！',
+            '你粉碎了一切障碍，打破了所有纪录！'
+          ]
+        }
+      },
+      {
+        id: 'nearMiss',
+        color: '#6BCB77',
+        emoji: '🥶',
+        labels: {
+          pt: 'QUASE MORREU', en: 'NEAR MISS', es: 'CASI MUERTO', fr: 'FRÔLÉ LA MORT',
+          de: 'KNAPP ENTKOMMEN', it: 'QUASI MORTO', ja: '危機一髪', zh: '极限逃生'
+        },
+        phrases: {
+          pt: [
+            'A PAREDE SENTIU O IMPACTO DA SUA ALMA!',
+            'VOCÊ ENCONTROU O ABISMO... E O ABISMO RECUOU!',
+            'POR UM MILÍMETRO VOCÊ ESCAPOU DA MORTE!'
+          ],
+          en: [
+            'THE WALL FELT THE IMPACT OF YOUR SOUL!',
+            'YOU MET THE ABYSS... AND THE ABYSS BACKED DOWN!',
+            'BY A FRACTION OF A MILLIMETER, YOU ESCAPED DEATH!'
+          ],
+          es: [
+            '¡LA PARED SINTIÓ EL IMPACTO DE TU ALMA!',
+            '¡MIRASTE AL ABISMO... Y EL ABISMO RETROCEDIÓ!',
+            '¡POR UN MILÍMETRO ESCAPASTE DE LA MUERTE!'
+          ],
+          fr: [
+            "LE MUR A SENTI L'IMPACT DE VOTRE ÂME !",
+            "VOUS AVEZ DÉFIÉ L'ABÎME... ET L'ABÎME A RECULÉ !",
+            "À UN MILLIMÈTRE PRÈS, VOUS ÉCHAPPEZ À LA MORT !"
+          ],
+          de: [
+            'DIE WAND HAT DEINE SEELE GESPÜRT!',
+            'DU TRATST DEM ABGRUND GEGENÜBER... UND ER WEICHT ZURÜCK!',
+            'UM EINEN MILLIMETER DEM TOD ENTKOMMEN!'
+          ],
+          it: [
+            "LA PARETE HA SENTITO L'IMPATTO DELLA TUA ANIMA!",
+            "HAI AFFRONTATO L'ABISSO... E L'ABISSO È ARRETRATO!",
+            'PER UN MILLIMETRO SEI SFUGGITO ALLA MORTE!'
+          ],
+          ja: [
+            '壁がお前の魂の衝撃を感じた！',
+            '奈落と対峙し…奈落が後退した！',
+            'わずか1ミリで死神を振り切った！'
+          ],
+          zh: [
+            '墙壁感受到了你灵魂的震撼！',
+            '你直视深渊……深渊退缩了！',
+            '毫厘之间，你与死神擦肩而过！'
+          ]
+        }
+      },
+      {
+        id: 'defeat',
+        color: '#4D96FF',
+        emoji: '💀',
+        labels: {
+          pt: 'DERROTA', en: 'DEFEAT', es: 'DERROTA', fr: 'DÉFAITE',
+          de: 'NIEDERLAGE', it: 'SCONFITTA', ja: '敗北', zh: '战败重生'
+        },
+        phrases: {
+          pt: [
+            'VOCÊ CAIU, MAS LEVANTOU MAIS FORTE QUE NUNCA!',
+            'A PAREDE PENSOU QUE TE TINHA... MAS VOCÊ É INDESTRUTÍVEL!',
+            'RESSURREIÇÃO ÉPICA! O ABISMO NUNCA VIU ALGO ASSIM!'
+          ],
+          en: [
+            'YOU FELL, BUT YOU RISE STRONGER THAN EVER!',
+            "THE WALL THOUGHT IT HAD YOU... BUT YOU'RE UNBREAKABLE!",
+            'EPIC RESURRECTION! THE ABYSS HAS NEVER WITNESSED THIS!'
+          ],
+          es: [
+            '¡CAÍSTE, PERO TE LEVANTAS MÁS FUERTE QUE NUNCA!',
+            '¡LA PARED CREYÓ QUE TE TENÍA... PERO ERES INDESTRUCTIBLE!',
+            '¡RESURRECCIÓN ÉPICA! ¡EL ABISMO NUNCA VIO ALGO ASÍ!'
+          ],
+          fr: [
+            'VOUS ÊTES TOMBÉ, MAIS VOUS VOUS RELEVEZ PLUS FORT !',
+            'LE MUR PENSAIT VOUS TENIR... VOUS ÊTES INDESTRUCTIBLE !',
+            "RÉSURRECTION ÉPIQUE ! DU JAMAIS VU DANS L'ABÎME !"
+          ],
+          de: [
+            'DU BIST GEFALLEN, ABER DU STEHST STÄRKER AUF!',
+            'DIE WAND DACHTE SIE HAT DICH... ABER DU BIST UNZERSTÖRBAR!',
+            'EPISCHE WIEDERAUFERSTEHUNG IM ABGRUND!'
+          ],
+          it: [
+            'SEI CADUTO, MA TI RIALZI PIÙ FORTE CHE MAI!',
+            'LA PARETE CREDEVA DI AVERTI... MA SEI INDISTRUTTIBILE!',
+            "RESURREZIONE EPICA! L'ABISSO NON HA MAI VISTO QUESTO!"
+          ],
+          ja: [
+            '倒れても、前より強く立ち上がる！',
+            '壁はお前を捕らえたと思ったが…お前は不滅だ！',
+            '奇跡の復活！奈落も見たことがない！'
+          ],
+          zh: [
+            '即使跌倒，你也必将比以往更强大地站起！',
+            '墙壁以为战胜了你……但你是不可摧毁的！',
+            '史诗级重生！深渊从未见过如此强者！'
+          ]
+        }
+      },
+      {
+        id: 'ad',
+        color: '#FF6BD6',
+        emoji: '📺',
+        labels: {
+          pt: 'ASSISTIR ANÚNCIO', en: 'WATCH AD', es: 'VER ANUNCIO', fr: 'REGARDER PUB',
+          de: 'WERBUNG ANSEHEN', it: 'GUARDA SPOT', ja: '広告視聴', zh: '观看广告'
+        },
+        phrases: {
+          pt: [
+            'VOCÊ ASSISTIU 1 ANÚNCIO! O ABISMO ESTÁ ORGULHOSO!',
+            'CADA ANÚNCIO TE DEIXA MAIS FORTE! QUER CONTINUAR?',
+            'VOCÊ É INCANSÁVEL! O NEON TE RECOMPENSA!'
+          ],
+          en: [
+            'YOU WATCHED 1 AD! THE ABYSS IS PROUD OF YOU!',
+            'EVERY AD MAKES YOU STRONGER! READY FOR MORE?',
+            'YOU ARE RELENTLESS! THE NEON LIGHT REWARDS YOU!'
+          ],
+          es: [
+            '¡VISTE 1 ANUNCIO! ¡EL ABISMO ESTÁ ORGULLOSO!',
+            '¡CADA ANUNCIO TE HACE MÁS FUERTE! ¿QUIERES SEGUIR?',
+            '¡ERES INCANSABLE! ¡EL NEÓN TE RECOMPENSA!'
+          ],
+          fr: [
+            "PUB REGARDÉE ! L'ABÎME EST FIER DE VOUS !",
+            'CHAQUE PUB VOUS REND PLUS FORT ! ON CONTINUE ?',
+            'VOUS ÊTES INCASSABLE ! LE NÉON VOUS RÉCOMPENSE !'
+          ],
+          de: [
+            '1 WERBUNG GESEHEN! DER ABGRUND IST STOLZ!',
+            'JEDE WERBUNG MACHT DICH STÄRKER! WEITERMACHEN?',
+            'DU BIST UNERMÜDLICH! DAS NEON BELOHNT DICH!'
+          ],
+          it: [
+            "HAI VISTO 1 SPOT! L'ABISSO È ORGOGLIOSO!",
+            'OGNI PUBBLICITÀ TI RENDE PIÙ FORTE! CONTINUIAMO?',
+            'SEI INSTANCABILE! IL NEON TI RICOMPENSA!'
+          ],
+          ja: [
+            '広告視聴完了！奈落はお前を讃える！',
+            '広告を見るたび強くなる！まだ行くか？',
+            '不屈の闘志！ネオンの光がお前に応える！'
+          ],
+          zh: [
+            '观看广告完成！深渊为你感到自豪！',
+            '每次观看都让你更强大！要继续吗？',
+            '永不放弃！霓虹之光将奖赏你的坚韧！'
+          ]
+        }
+      },
+      {
+        id: 'record',
+        color: '#FFB347',
+        emoji: '🏆',
+        labels: {
+          pt: 'RECORDE MUNDIAL', en: 'WORLD RECORD', es: 'RÉCORD MUNDIAL', fr: 'RECORD MONDIAL',
+          de: 'WELTREKORD', it: 'RECORD MONDIALE', ja: '世界記録', zh: '世界纪录'
+        },
+        phrases: {
+          pt: [
+            'NOVO RECORDE ABSOLUTO! VOCÊ É LENDÁRIO!',
+            'O MUNDO É SEU! QUE BRILHO ESPETACULAR!',
+            'NOME GRAVADO NA ETERNIDADE COM BRILHO NEON!'
+          ],
+          en: [
+            'NEW ABSOLUTE RECORD! YOU ARE A LIVING LEGEND!',
+            'THE WORLD IS YOURS! WHAT A SPECTACULAR SHINE!',
+            'NAME ENGRAVED IN ETERNITY WITH NEON GLOW!'
+          ],
+          es: [
+            '¡NUEVO RÉCORD ABSOLUTO! ¡ERES UNA LEYENDA!',
+            '¡EL MUNDO ES TUYO! ¡QUÉ BRILLO TAN ESPECTACULAR!',
+            '¡NOMBRE GRABADO EN LA ETERNIDAD CON BRILLO NEÓN!'
+          ],
+          fr: [
+            'NOUVEAU RECORD MONDIAL ! VOUS ÊTES LÉGENDAIRE !',
+            'LE MONDE EST À VOUS ! QUEL ÉCLAT SPECTACULAIRE !',
+            "NOM GRAVÉ DANS L'ÉTERNITÉ DE NÉON !"
+          ],
+          de: [
+            'NEUER WELTREKORD! DU BIST EINE LEGENDE!',
+            'DIE WELT GEHÖRT DIR! WAS FÜR EIN GLANZ!',
+            'NAME FÜR DIE EWIGKEIT IN NEON GRAVIERT!'
+          ],
+          it: [
+            'NUOVO RECORD ASSOLUTO! SEI UNA LEGGENDA!',
+            'IL MONDO È TUO! CHE SPLENDORE SPETTACOLARE!',
+            "NOME INCISO NELL'ETERNITÀ CON LUCE NEON!"
+          ],
+          ja: [
+            '新世界記録達成！お前は伝説の存在だ！',
+            '世界はお前のものだ！目も眩む輝き！',
+            'ネオンの光と共に永遠に刻まれる名！'
+          ],
+          zh: [
+            '全新世界纪录！你就是活着的传奇！',
+            '世界属于你！何等耀眼的霓虹光芒！',
+            '你的名字将在霓虹光辉中永垂不朽！'
+          ]
+        }
+      },
+      {
+        id: 'frenzy',
+        color: '#A66CFF',
+        emoji: '⚡',
+        labels: {
+          pt: 'MODO FRENESI', en: 'FRENZY MODE', es: 'MODO FRENESÍ', fr: 'MODE FRÉNÉSIE',
+          de: 'RASEREI-MODUS', it: 'MODALITÀ FURIA', ja: '狂乱モード', zh: '狂暴模式'
+        },
+        phrases: {
+          pt: [
+            'MODO FRENESI ATIVADO! TUDO VALE DOBRADO!',
+            'OVERDRIVE TOTAL! BRILHO MÁXIMO NO ABISMO!',
+            'NÍVEL DEMONÍACO DE VELOCIDADE!'
+          ],
+          en: [
+            'FRENZY MODE ACTIVATED! EVERYTHING COUNTS DOUBLE!',
+            'TOTAL OVERDRIVE! MAXIMUM GLOW IN THE ABYSS!',
+            'DEMONIC LEVEL OF VELOCITY AND POWER!'
+          ],
+          es: [
+            '¡MODO FRENESÍ ACTIVADO! ¡TODO VALE EL DOBLE!',
+            '¡OVERDRIVE TOTAL! ¡MÁXIMO BRILLO EN EL ABISMO!',
+            '¡NIVEL DEMONÍACO DE PURA VELOCIDAD!'
+          ],
+          fr: [
+            'MODE FRÉNÉSIE ACTIVÉ ! TOUT VAUT DOUBLE !',
+            "OVERDRIVE TOTAL ! PUISSANCE MAXIMALE DANS L'ABÎME !",
+            'VITESSE DÉMONIAQUE SANS LIMITES !'
+          ],
+          de: [
+            'RASEREI-MODUS AKTIV! ALLES ZÄHLT DOPPELT!',
+            'TOTALER OVERDRIVE! MAXIMALES LEUCHTEN!',
+            'DÄMONISCHE GESCHWINDIGKEIT ERREICHT!'
+          ],
+          it: [
+            'MODALITÀ FURIA ATTIVA! TUTTO VALE IL DOPPIO!',
+            "OVERDRIVE TOTALE! MASSIMA LUCE NELL'ABISSO!",
+            'LIVELLO DEMONIACO DI VELOCITÀ!'
+          ],
+          ja: [
+            '狂乱モード起動！すべてが倍加する！',
+            'オーバードライブ全開！深淵の極限発光！',
+            '神速を超えた悪魔的スピード！'
+          ],
+          zh: [
+            '狂暴模式启动！所有得分与奖励翻倍！',
+            '全面超载！深渊之中的极致光芒！',
+            '超越极限的魔鬼般速度！'
+          ]
+        }
+      },
+      {
+        id: 'challenge',
+        color: '#00D2FF',
+        emoji: '🎯',
+        labels: {
+          pt: 'DESAFIO ÉPICO', en: 'EPIC CHALLENGE', es: 'DESAFÍO ÉPICO', fr: 'DÉFI ÉPIQUE',
+          de: 'EPISCHE PRÜFUNG', it: 'SFIDA EPICA', ja: '究極の挑戦', zh: '史诗挑战'
+        },
+        phrases: {
+          pt: [
+            'O ABISMO TE DESAFIA! MOSTRA DO QUE É CAPAZ!',
+            'VOCÊ TEM O PODER DE REESCREVER A HISTÓRIA!',
+            'NINGUÉM NUNCA FEZ ISSO ANTES! VOCÊ É HISTÓRIA!'
+          ],
+          en: [
+            'THE ABYSS CHALLENGES YOU! SHOW WHAT YOU GOT!',
+            'YOU HAVE THE POWER TO REWRITE HISTORY!',
+            'NO ONE HAS EVER DONE THIS BEFORE! YOU ARE LEGENDARY!'
+          ],
+          es: [
+            '¡EL ABISMO TE DESAFÍA! ¡MUESTRA DE QUÉ ERES CAPAZ!',
+            '¡TIENES EL PODER DE REESCRIBIR LA HISTORIA!',
+            '¡NADIE HA LOGRADO ESTO ANTES! ¡ERES PURA HISTORIA!'
+          ],
+          fr: [
+            'L’ABÎME VOUS DÉFIE ! MONTREZ VOTRE VRAIE FORCE !',
+            'VOUS AVEZ LE POUVOIR DE RÉÉCRIRE L’HISTOIRE !',
+            'PERSONNE N’A FAIT ÇA AVANT ! VOUS ÊTES UNE LÉGENDE !'
+          ],
+          de: [
+            'DER ABGRUND FORDERT DICH HERAUS! ZEIG DEINE MACHT!',
+            'DU KANNST DIE GESCHICHTE NEU SCHREIBEN!',
+            'DAS HAT NOCH NIE JEMAND GESCHAFFT! DU BIST GESCHICHTE!'
+          ],
+          it: [
+            "L'ABISSO TI SFIDA! MOSTRA DI COSA SEI CAPACE!",
+            'HAI IL POTERE DI RISCRIVERE LA STORIA!',
+            'NESSUNO CI È MAI RIUSCITO PRIMA! SEI STORIA!'
+          ],
+          ja: [
+            '奈落がお前を試す！真の力を見せてみろ！',
+            'お前には歴史を塗り替える力がある！',
+            '前人未到の領域！お前が伝説だ！'
+          ],
+          zh: [
+            '深渊向你发起挑战！展现你的真正实力！',
+            '你拥有重写历史的无上力量！',
+            '前无古人！你就是奇迹本身！'
+          ]
+        }
+      }
+    ];
+
+    const LOGS_DATA = {
+      pt: ['SINTONIZANDO FREQUÊNCIA QUÂNTICA...', 'DECODIFICANDO DIRETIVA NEON...', 'CALIBRANDO ENERGIA DO ABISMO...', 'DESBLOQUEANDO SÍNTESE VOCAL...', 'TRANSMISSÃO HOLOGRÁFICA PRONTA!'],
+      en: ['TUNING QUANTUM FREQUENCY...', 'DECODING NEON DIRECTIVE...', 'CALIBRATING ABYSS ENERGY...', 'UNLOCKING VOICE SYNTHESIS...', 'HOLOGRAPHIC BROADCAST READY!'],
+      es: ['SINTONIZANDO FRECUENCIA CUÁNTICA...', 'DECODIFICANDO DIRECTIVA NEÓN...', 'CALIBRANDO ENERGÍA DEL ABISMO...', 'DESBLOQUEANDO SÍNTESIS VOCAL...', '¡TRANSMISIÓN HOLOGRÁFICA LISTA!'],
+      fr: ['SYNTONISATION QUANTIQUE...', 'DÉCODAGE DIRECTIVE NÉON...', 'CALIBRAGE ÉNERGIE DE L’ABÎME...', 'SYNTHÈSE VOCALE PRÊTE...', 'DIFFUSION HOLOGRAPHIQUE ACTIVÉE !'],
+      de: ['QUANTENFREQUENZ WIRD ABGESTIMMT...', 'NEON-DIREKTIVE WIRD DEKODIERT...', 'ABGRUND-ENERGIE WIRD KALIBRIERT...', 'SPRACHSYNTHESE FREIGESCHALTET...', 'HOLOGRAFISCHE ÜBERTRAGUNG BEREIT!'],
+      it: ['SINTONIZZAZIONE FREQUENZA QUANTICA...', 'DECODIFICA DIRETTIVA NEON...', 'CALIBRAZIONE ENERGIA DELL’ABISSO...', 'SINTESI VOCALE SBLOCCATA...', 'TRASMISSIONE OLOGRAFICA PRONTA!'],
+      ja: ['量子周波数を同調中...', 'ネオン指令をデコード中...', '奈落のエネルギーを較正中...', '音声合成エンジンを解除中...', 'ホログラフィック通信準備完了！'],
+      zh: ['正在调谐量子频率……', '正在解码霓虹指令……', '正在校准深渊能量……', '正在解锁语音合成……', '全息广播准备就绪！']
+    };
+
+    const UI_DICTIONARY = {
+      pt: {
+        title: '🎙️ NARRADOR VICIANTE',
+        subtitle: '🔥 O ABISMO TE CHAMA...',
+        defaultText: 'CLIQUE EM UM BOTÃO ABAIXO PARA OUVIR O NARRADOR...',
+        badge: 'PROCESSADOR CINEMATOGRÁFICO DE VOZ',
+        initLabel: 'INICIALIZANDO SINTETIZADOR',
+        heard: '✨ FRASES OUVIDAS: ',
+        addiction: 'NÍVEL DE VÍCIO: '
+      },
+      en: {
+        title: '🎙️ ADDICTIVE NARRATOR',
+        subtitle: '🔥 THE ABYSS CALLS YOU...',
+        defaultText: 'CLICK A BUTTON BELOW TO HEAR THE NARRATOR...',
+        badge: 'CINEMATIC VOICE PROCESSOR',
+        initLabel: 'INITIALIZING SYNTHESIZER',
+        heard: '✨ PHRASES HEARD: ',
+        addiction: 'ADDICTION LEVEL: '
+      },
+      es: {
+        title: '🎙️ NARRADOR ADICTIVO',
+        subtitle: '🔥 EL ABISMO TE LLAMA...',
+        defaultText: 'HAZ CLIC EN UN BOTÓN PARA ESCUCHAR AL NARRADOR...',
+        badge: 'PROCESADOR CINEMATOGRÁFICO DE VOZ',
+        initLabel: 'INICIALIZANDO SINTETIZADOR',
+        heard: '✨ FRASES ESCUCHADAS: ',
+        addiction: 'NIVEL DE ADICCIÓN: '
+      },
+      fr: {
+        title: '🎙️ NARRATEUR ADDICTIF',
+        subtitle: '🔥 L’ABÎME VOUS APPELLE...',
+        defaultText: 'CLIQUEZ SUR UN BOUTON CI-DESSOUS POUR ÉCOUTER...',
+        badge: 'PROCESSEUR CINÉMATIQUE VOCAL',
+        initLabel: 'INITIALISATION SYNTHÉTISEUR',
+        heard: '✨ PHRASES ÉCOUTÉES : ',
+        addiction: 'NIVEAU D’ADDICTION : '
+      },
+      de: {
+        title: '🎙️ SÜCHTIG-MACHER ERZÄHLER',
+        subtitle: '🔥 DER ABGRUND RUFT DICH...',
+        defaultText: 'KLICKE AUF EINEN BUTTON, UM DEN ERZÄHLER ZU HÖREN...',
+        badge: 'KINOMATISCHER SPRACHPROZESSOR',
+        initLabel: 'SYNTHESIZER WIRD INITIALISIERT',
+        heard: '✨ GEHÖRTE SÄTZE: ',
+        addiction: 'SUCHT-LEVEL: '
+      },
+      it: {
+        title: '🎙️ NARRATORE ADRENALINICO',
+        subtitle: '🔥 L’ABISSO TI CHIAMA...',
+        defaultText: 'CLICCA SU UN PULSANTE QUI SOTTO PER ASCOLTARE...',
+        badge: 'PROCESSORE VOCALE CINEMATOGRAFICO',
+        initLabel: 'INIZIALIZZAZIONE SINTETIZZATORE',
+        heard: '✨ FRASI ASCOLTATE: ',
+        addiction: 'LIVELLO DI DIPENDENZA: '
+      },
+      ja: {
+        title: '🎙️ 中毒性神ナレーター',
+        subtitle: '🔥 奈落がお前を呼んでいる...',
+        defaultText: '下のボタンを押してナレーションを聴け...',
+        badge: 'シネマティック音声演算プロセッサ',
+        initLabel: '音声合成エンジン初期化中',
+        heard: '✨ 再生回数: ',
+        addiction: '中毒度: '
+      },
+      zh: {
+        title: '🎙️ 极度上瘾解说员',
+        subtitle: '🔥 深渊正在呼唤你……',
+        defaultText: '点击下方按钮即可收听专属解说……',
+        badge: '电影级量子语音处理器',
+        initLabel: '正在初始化语音引擎',
+        heard: '✨ 已收听金句: ',
+        addiction: '上瘾等级: '
+      }
+    };
+
+    let phraseCounts = 0;
+    let isNarrating = false;
+    const phraseIndexMap = {};
+    let typewriterInterval = null;
+    let completeTimeout = null;
+
+    function renderButtons() {
+      const grid = document.getElementById('buttonsGrid');
+      grid.innerHTML = '';
+      MULTI_LANG_DATA.forEach((cat, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'neon-btn';
+        btn.style.borderColor = cat.color;
+        btn.style.boxShadow = `0 0 10px ${cat.color}66`;
+        btn.onclick = () => triggerNarrator(idx);
+        const labelText = cat.labels[activeLang] || cat.labels.pt;
+        btn.innerHTML = `<span style="font-size: 16px;">${cat.emoji}</span> <span style="text-shadow: 0 0 8px ${cat.color};">${labelText}</span>`;
+        grid.appendChild(btn);
+      });
+    }
+
+    function switchLanguage(lang) {
+      activeLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.toLowerCase().includes(lang));
+      });
+      const ui = UI_DICTIONARY[lang] || UI_DICTIONARY.pt;
+      document.getElementById('mainTitle').innerText = ui.title;
+      document.getElementById('mainSubtitle').innerText = ui.subtitle;
+      document.getElementById('phraseText').innerText = ui.defaultText;
+      document.getElementById('cinematicBadge').innerText = ui.badge;
+      document.getElementById('cinematicInitLabel').innerText = ui.initLabel;
+      const addictionPct = Math.min(100, Math.floor((phraseCounts / 30) * 100));
+      document.getElementById('addictionStatus').innerText = ui.addiction + addictionPct + '%';
+      renderButtons();
+    }
+
+    // Web Speech API Synthesis
+    function speakPhrase(text, langCode) {
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          const langMap = {
+            pt: 'pt-BR', en: 'en-US', es: 'es-ES', fr: 'fr-FR',
+            de: 'de-DE', it: 'it-IT', ja: 'ja-JP', zh: 'zh-CN'
+          };
+          utterance.lang = langMap[langCode] || 'pt-BR';
+          utterance.rate = 0.85; // Velocidade 0.85
+          utterance.pitch = 0.8; // Tom grave masculino
+
+          const voices = window.speechSynthesis.getVoices();
+          const voice = voices.find(v => v.lang.startsWith(langCode) && (
+            v.name.toLowerCase().includes('male') ||
+            v.name.toLowerCase().includes('homem') ||
+            v.name.toLowerCase().includes('lucas') ||
+            v.name.toLowerCase().includes('daniel') ||
+            v.name.toLowerCase().includes('david') ||
+            v.name.toLowerCase().includes('george')
+          )) || voices.find(v => v.lang.startsWith(langCode));
+
+          if (voice) utterance.voice = voice;
+          window.speechSynthesis.speak(utterance);
+        } catch (e) {
+          console.warn('SpeechSynthesis err:', e);
+        }
+      }
+    }
+
+    // Trigger Narrator Button Click com Animação Cinematográfica de 3s
+    function triggerNarrator(categoryIndex) {
+      if (isNarrating) return;
+
+      const category = MULTI_LANG_DATA[categoryIndex];
+      const phrases = category.phrases[activeLang] || category.phrases.pt;
+      const currentIndex = phraseIndexMap[categoryIndex] || 0;
+      const phrase = phrases[currentIndex].toUpperCase();
+      phraseIndexMap[categoryIndex] = (currentIndex + 1) % phrases.length;
+
+      // Desabilitar botões
+      isNarrating = true;
+      const allButtons = document.querySelectorAll('.neon-btn');
+      allButtons.forEach(b => b.disabled = true);
+      allButtons[categoryIndex].classList.add('active-narrating');
+
+      // 1. Ativar Overlay Cinematográfico de Processamento (3 Segundos)
+      const overlay = document.getElementById('cinematicOverlay');
+      const box = document.getElementById('cinematicBox');
+      const badge = document.getElementById('cinematicBadge');
+      const ringOuter = document.getElementById('reactorRingOuter');
+      const core = document.getElementById('reactorCore');
+      const title = document.getElementById('cinematicCategoryTitle');
+      const log = document.getElementById('cinematicLog');
+      const barFill = document.getElementById('cinematicBarFill');
+      const pct = document.getElementById('cinematicPct');
+
+      overlay.style.display = 'flex';
+      box.style.borderColor = category.color;
+      box.style.boxShadow = `0 0 45px ${category.color}, inset 0 0 30px rgba(0,0,0,0.8)`;
+      badge.style.background = category.color;
+      ringOuter.style.borderColor = category.color;
+      core.style.borderColor = category.color;
+      core.style.boxShadow = `0 0 25px ${category.color}`;
+      core.innerText = category.emoji;
+      title.innerText = category.labels[activeLang] || category.labels.pt;
+      title.style.color = '#FFF';
+      title.style.textShadow = `0 0 15px ${category.color}`;
+      barFill.style.background = category.color;
+      barFill.style.boxShadow = `0 0 15px ${category.color}`;
+      pct.style.color = category.color;
+
+      const PROCESSING_TIME = 3000;
+      const step = 30;
+      let elapsed = 0;
+      let logIndex = 0;
+      const logs = LOGS_DATA[activeLang] || LOGS_DATA.pt;
+
+      const logInterval = setInterval(() => {
+        logIndex = (logIndex + 1) % logs.length;
+        log.innerText = logs[logIndex];
+      }, 600);
+
+      const processInterval = setInterval(() => {
+        elapsed += step;
+        const currentPct = Math.min(100, Math.floor((elapsed / PROCESSING_TIME) * 100));
+        barFill.style.width = currentPct + '%';
+        pct.innerText = currentPct + '%';
+
+        if (elapsed >= PROCESSING_TIME) {
+          clearInterval(processInterval);
+          clearInterval(logInterval);
+          overlay.style.display = 'none';
+
+          // Executar narração & atualização de tela
+          revealNarrator(category, phrase, allButtons);
+        }
+      }, step);
+    }
+
+    function revealNarrator(category, phrase, allButtons) {
+      const ui = UI_DICTIONARY[activeLang] || UI_DICTIONARY.pt;
+      phraseCounts++;
+      document.getElementById('countDisplay').innerText = phraseCounts;
+      const addictionPct = Math.min(100, Math.floor((phraseCounts / 30) * 100));
+      document.getElementById('progressFill').style.width = addictionPct + '%';
+      document.getElementById('addictionStatus').innerText = ui.addiction + addictionPct + '%';
+
+      // Update display styling
+      const displayCard = document.getElementById('displayCard');
+      const categoryTag = document.getElementById('categoryTag');
+      const phraseText = document.getElementById('phraseText');
+
+      displayCard.style.borderColor = category.color;
+      displayCard.style.boxShadow = `0 0 25px ${category.color}`;
+      categoryTag.style.display = 'block';
+      categoryTag.style.background = category.color;
+      categoryTag.innerText = category.labels[activeLang] || category.labels.pt;
+
+      // Speak immediately with Web Speech API
+      speakPhrase(phrase, activeLang);
+
+      // Start Typewriter animation
+      if (typewriterInterval) clearInterval(typewriterInterval);
+      if (completeTimeout) clearTimeout(completeTimeout);
+
+      phraseText.innerHTML = '';
+      const totalDuration = 2500;
+      const stepTime = Math.max(15, Math.floor(totalDuration / phrase.length));
+      let charIdx = 0;
+
+      typewriterInterval = setInterval(() => {
+        charIdx++;
+        if (charIdx <= phrase.length) {
+          phraseText.innerHTML = phrase.slice(0, charIdx) + '<span class="cursor"></span>';
+        } else {
+          clearInterval(typewriterInterval);
+        }
+      }, stepTime);
+
+      // Re-enable after speech
+      completeTimeout = setTimeout(() => {
+        clearInterval(typewriterInterval);
+        phraseText.innerHTML = phrase;
+        allButtons.forEach(b => {
+          b.disabled = false;
+          b.classList.remove('active-narrating');
+        });
+        isNarrating = false;
+      }, totalDuration);
+    }
+
+    // Initialize buttons on page load
+    renderButtons();
+  </script>
+</body>
+</html>

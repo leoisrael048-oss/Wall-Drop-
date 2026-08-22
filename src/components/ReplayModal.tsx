@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Share2, Download, X, Film, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { GameSettings, DeathReplayData } from '../types';
 import { audio } from '../utils/audio';
 import { replayRecorder } from '../services/replayRecorder';
@@ -194,16 +195,19 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({
           </div>
         </div>
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => {
             audio.playSfx('click', settings);
             onClose();
           }}
-          className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all active:scale-95 shadow-md"
+          className="p-2 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-all shadow-md"
           title="Fechar"
         >
           <X className="w-4 h-4" />
-        </button>
+        </motion.button>
       </div>
 
       {/* Main Replay Stage */}
@@ -235,21 +239,27 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({
       <div className="w-full max-w-sm flex flex-col gap-2.5 z-10">
         {/* Playback Controls */}
         <div className="w-full flex items-center justify-between px-3 py-1.5 bg-slate-900/90 border border-slate-800 rounded-xl shadow-inner">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={handleRestart}
-            className="p-2 text-slate-400 hover:text-white transition-all active:scale-90"
+            className="p-2 text-slate-400 hover:text-white transition-all"
             title="Reiniciar Replay"
           >
             <RotateCcw className="w-4 h-4" />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
             onClick={handleTogglePlay}
-            className="p-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 rounded-full transition-all active:scale-95 shadow"
+            className="p-2.5 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 rounded-full transition-all shadow"
             title={isPlaying ? 'Pausar' : 'Reproduzir'}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
-          </button>
+          </motion.button>
 
           <span className="text-[10px] font-mono font-bold text-slate-400">
             {currentFrame + 1}/{totalFrames} frames
@@ -258,10 +268,13 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({
 
         {/* Share & Download Action Buttons */}
         <div className="w-full grid grid-cols-2 gap-2">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleShare}
             disabled={isProcessingShare}
-            className="flex items-center justify-center gap-2 py-3 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-950/50 active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-2 py-3 px-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-950/50 transition-all disabled:opacity-50"
           >
             {isProcessingShare ? (
               <>
@@ -274,16 +287,19 @@ export const ReplayModal: React.FC<ReplayModalProps> = ({
                 <span>Compartilhar</span>
               </>
             )}
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleDownload}
             disabled={isProcessingShare}
-            className="flex items-center justify-center gap-2 py-3 px-3 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-2 py-3 px-3 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs rounded-xl shadow-md transition-all disabled:opacity-50"
           >
             <Download className="w-4 h-4 text-sky-400" />
             <span>Baixar Vídeo</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Loading / Status Bar */}

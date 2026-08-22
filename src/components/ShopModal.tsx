@@ -9,7 +9,8 @@ import {
   Palette, 
   Sparkles, 
   Skull, 
-  ShieldAlert 
+  ShieldAlert,
+  Loader2
 } from 'lucide-react';
 import { 
   CharacterId, 
@@ -89,6 +90,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'characters' | 'skins' | 'trails' | 'effects'>('characters');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   const renderRarityBadge = (rarity?: string) => {
     if (!rarity) return null;
@@ -147,7 +149,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
           : '⚠️ Ad is loading... Please wait.';
       case 'offline':
         return lang === 'pt' ? '📶 Modo Offline: Anúncios requerem internet.'
-          : lang === 'es' ? '📶 Modo sin conexión: Los anuncios requieren internet.'
+          : lang === 'es' ? '📶 Modo sin conexão: Los anuncios requieren internet.'
           : '📶 Offline Mode: Ads require internet connection.';
       default:
         return codeOrMsg.startsWith('⚠️') ? codeOrMsg : `⚠️ ${codeOrMsg}`;
@@ -155,6 +157,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
   };
 
   const handleWatchAdForCoins = () => {
+    setProcessingKey('ad');
     audio.playSfx('click', settings);
     showToast(getFriendlyAdErrorMessage('loading'));
     adService.showRewardedAd(
@@ -165,11 +168,22 @@ export const ShopModal: React.FC<ShopModalProps> = ({
           onEarnCoinsAd(50);
         }
         showToast(lang === 'en' ? '+50 COINS ADDED!' : lang === 'es' ? '¡+50 MONEDAS!' : '+50 MOEDAS ADICIONADAS!');
+        setProcessingKey(null);
       },
       (err) => {
         showToast(getFriendlyAdErrorMessage(err));
+        setProcessingKey(null);
       }
     );
+  };
+
+  const handleBackWithAnimation = () => {
+    setProcessingKey('back');
+    audio.playSfx('click', settings);
+    audio.speakNarrator('returnMenu', settings);
+    setTimeout(() => {
+      onBack();
+    }, 120);
   };
 
   return (
@@ -179,26 +193,41 @@ export const ShopModal: React.FC<ShopModalProps> = ({
 
       {/* Top Header */}
       <div className="w-full max-w-md flex items-center justify-between z-10 pt-2 gap-2">
-        <button
-          onClick={() => {
-            audio.playSfx('click', settings);
-            audio.speakNarrator('returnMenu', settings);
-            onBack();
-          }}
-          className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1.5 text-xs font-bold"
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+          onClick={handleBackWithAnimation}
+          className={`p-2.5 rounded-xl border transition-all shadow-md flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
+            processingKey === 'back'
+              ? 'bg-slate-800 border-cyan-400 text-white ring-1 ring-cyan-400'
+              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('menu')}</span>
-        </button>
+          {processingKey === 'back' ? (
+            <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+          ) : (
+            <ArrowLeft className="w-4 h-4" />
+          )}
+          <span>{processingKey === 'back' ? 'VOLTANDO...' : t('menu')}</span>
+        </motion.button>
 
         <div className="flex items-center gap-2">
           {/* Rewarded Ad Coins Button */}
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.90 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={handleWatchAdForCoins}
-            className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 px-3 py-1.5 rounded-full font-black text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all border border-yellow-300/60 animate-pulse"
+            className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 px-3 py-1.5 rounded-full font-black text-xs shadow-lg shadow-amber-500/20 transition-all border border-yellow-300/60 animate-pulse cursor-pointer"
           >
-            <span>+50 🎁</span>
-          </button>
+            {processingKey === 'ad' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-950" />
+            ) : null}
+            <span>{processingKey === 'ad' ? 'CARREGANDO...' : '+50 🎁'}</span>
+          </motion.button>
 
           <div className="flex items-center gap-1.5 bg-slate-900/90 border border-amber-500/40 px-3.5 py-1.5 rounded-full shadow-lg">
             <Coins className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
@@ -226,8 +255,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => {
+              setProcessingKey('tab-characters');
               audio.playSfx('click', settings);
               setActiveTab('characters');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
             className={`py-2 rounded-xl text-[10px] sm:text-xs font-black transition-colors flex flex-col items-center justify-center gap-0.5 cursor-pointer transform-gpu ${
               activeTab === 'characters'
@@ -236,7 +267,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             }`}
           >
             <div className="flex items-center gap-1">
-              <User className="w-3.5 h-3.5 shrink-0" />
+              {processingKey === 'tab-characters' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <User className="w-3.5 h-3.5 shrink-0" />}
               <span>{t('heroes')}</span>
             </div>
             <span className="text-[9px] opacity-80">{unlockedCharacters.length}/{INITIAL_CHARACTERS.length}</span>
@@ -246,8 +277,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => {
+              setProcessingKey('tab-skins');
               audio.playSfx('click', settings);
               setActiveTab('skins');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
             className={`py-2 rounded-xl text-[10px] sm:text-xs font-black transition-colors flex flex-col items-center justify-center gap-0.5 cursor-pointer transform-gpu ${
               activeTab === 'skins'
@@ -256,7 +289,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             }`}
           >
             <div className="flex items-center gap-1">
-              <Palette className="w-3.5 h-3.5 shrink-0" />
+              {processingKey === 'tab-skins' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Palette className="w-3.5 h-3.5 shrink-0" />}
               <span>{t('skins')}</span>
             </div>
             <span className="text-[9px] opacity-80">{unlockedSkins.length}/{INITIAL_SKINS.length}</span>
@@ -266,8 +299,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => {
+              setProcessingKey('tab-trails');
               audio.playSfx('click', settings);
               setActiveTab('trails');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
             className={`py-2 rounded-xl text-[10px] sm:text-xs font-black transition-colors flex flex-col items-center justify-center gap-0.5 cursor-pointer transform-gpu ${
               activeTab === 'trails'
@@ -276,7 +311,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             }`}
           >
             <div className="flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              {processingKey === 'tab-trails' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 shrink-0" />}
               <span>{t('trails')}</span>
             </div>
             <span className="text-[9px] opacity-80">{unlockedTrails.length}/{INITIAL_TRAILS.length}</span>
@@ -286,8 +321,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.03 }}
             onClick={() => {
+              setProcessingKey('tab-effects');
               audio.playSfx('click', settings);
               setActiveTab('effects');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
             className={`py-2 rounded-xl text-[10px] sm:text-xs font-black transition-colors flex flex-col items-center justify-center gap-0.5 cursor-pointer transform-gpu ${
               activeTab === 'effects'
@@ -296,7 +333,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
             }`}
           >
             <div className="flex items-center gap-1">
-              <Skull className="w-3.5 h-3.5 shrink-0" />
+              {processingKey === 'tab-effects' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Skull className="w-3.5 h-3.5 shrink-0" />}
               <span>{t('effects')}</span>
             </div>
             <span className="text-[9px] opacity-80">{unlockedDeathEffects.length}/{INITIAL_DEATH_EFFECTS.length}</span>
@@ -311,6 +348,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({
               const char = getLocalizedCharacter(rawChar, lang);
               const isUnlocked = safeUnlockedChars.includes(char.id);
               const isSelected = selectedCharacterId === char.id;
+              const itemKey = `char-${char.id}`;
+              const isProcessing = processingKey === itemKey;
 
               return (
                 <motion.div
@@ -320,9 +359,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                   transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   onClick={() => {
                     if (isUnlocked && !isSelected) {
+                      setProcessingKey(itemKey);
                       onSelectCharacter(char.id);
                       audio.playSfx('click', settings);
                       audio.speakNarrator('equipItem', settings);
+                      setTimeout(() => setProcessingKey(null), 150);
                     }
                   }}
                   className={`bg-slate-900/90 border rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md transition-colors cursor-pointer transform-gpu will-change-transform ${
@@ -370,13 +411,16 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           onSelectCharacter(char.id);
                           audio.playSfx('click', settings);
                           audio.speakNarrator('equipItem', settings);
+                          setTimeout(() => setProcessingKey(null), 150);
                         }}
-                        className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu"
+                        className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu flex items-center gap-1 cursor-pointer"
                       >
-                        {t('equip')}
+                        {isProcessing && <Loader2 className="w-3 h-3 animate-spin" />}
+                        <span>{t('equip')}</span>
                       </motion.button>
                     ) : char.isSecret ? (
                       <div className="px-3 py-1.5 bg-slate-800/80 border border-amber-500/30 text-amber-300 rounded-xl text-xs font-extrabold flex items-center gap-1">
@@ -390,6 +434,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           if (coins >= char.price) {
                             if (onUnlockCharacter(char.id, char.price)) {
                               onSelectCharacter(char.id);
@@ -402,15 +447,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                             audio.speakNarrator('insufficientCoins', settings);
                             showToast(t('insufficientCoins'));
                           }
+                          setTimeout(() => setProcessingKey(null), 180);
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu cursor-pointer ${
                           coins >= char.price
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black'
                             : 'bg-slate-800 text-slate-400 border border-slate-700'
                         }`}
                       >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>{char.price}</span>
+                        {isProcessing ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Lock className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isProcessing ? '...' : char.price}</span>
                       </motion.button>
                     )}
                   </div>
@@ -425,6 +475,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({
               const skin = getLocalizedSkin(rawSkin, lang);
               const isUnlocked = safeUnlockedSkins.includes(skin.id);
               const isSelected = selectedSkinId === skin.id;
+              const itemKey = `skin-${skin.id}`;
+              const isProcessing = processingKey === itemKey;
 
               return (
                 <motion.div
@@ -434,9 +486,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                   transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   onClick={() => {
                     if (isUnlocked && !isSelected) {
+                      setProcessingKey(itemKey);
                       onSelectSkin(skin.id);
                       audio.playSfx('click', settings);
                       audio.speakNarrator('equipItem', settings);
+                      setTimeout(() => setProcessingKey(null), 150);
                     }
                   }}
                   className={`bg-slate-900/90 border rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md transition-colors cursor-pointer transform-gpu will-change-transform ${
@@ -483,13 +537,16 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           onSelectSkin(skin.id);
                           audio.playSfx('click', settings);
                           audio.speakNarrator('equipItem', settings);
+                          setTimeout(() => setProcessingKey(null), 150);
                         }}
-                        className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu"
+                        className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu flex items-center gap-1 cursor-pointer"
                       >
-                        {t('equip')}
+                        {isProcessing && <Loader2 className="w-3 h-3 animate-spin" />}
+                        <span>{t('equip')}</span>
                       </motion.button>
                     ) : (
                       <motion.button
@@ -498,6 +555,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           if (coins >= skin.price) {
                             if (onUnlockSkin(skin.id, skin.price)) {
                               onSelectSkin(skin.id);
@@ -510,15 +568,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                             audio.speakNarrator('insufficientCoins', settings);
                             showToast(t('insufficientCoins'));
                           }
+                          setTimeout(() => setProcessingKey(null), 180);
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu cursor-pointer ${
                           coins >= skin.price
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black'
                             : 'bg-slate-800 text-slate-400 border border-slate-700'
                         }`}
                       >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>{skin.price}</span>
+                        {isProcessing ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Lock className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isProcessing ? '...' : skin.price}</span>
                       </motion.button>
                     )}
                   </div>
@@ -533,6 +596,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({
               const trail = getLocalizedTrail(rawTrail, lang);
               const isUnlocked = safeUnlockedTrails.includes(trail.id);
               const isSelected = selectedTrailId === trail.id;
+              const itemKey = `trail-${trail.id}`;
+              const isProcessing = processingKey === itemKey;
 
               return (
                 <motion.div
@@ -542,9 +607,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                   transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   onClick={() => {
                     if (isUnlocked && !isSelected) {
+                      setProcessingKey(itemKey);
                       onSelectTrail(trail.id);
                       audio.playSfx('click', settings);
                       audio.speakNarrator('equipItem', settings);
+                      setTimeout(() => setProcessingKey(null), 150);
                     }
                   }}
                   className={`bg-slate-900/90 border rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md transition-colors cursor-pointer transform-gpu will-change-transform ${
@@ -578,13 +645,16 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           onSelectTrail(trail.id);
                           audio.playSfx('click', settings);
                           audio.speakNarrator('equipItem', settings);
+                          setTimeout(() => setProcessingKey(null), 150);
                         }}
-                        className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu"
+                        className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu flex items-center gap-1 cursor-pointer"
                       >
-                        {t('equip')}
+                        {isProcessing && <Loader2 className="w-3 h-3 animate-spin" />}
+                        <span>{t('equip')}</span>
                       </motion.button>
                     ) : (
                       <motion.button
@@ -593,6 +663,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           if (coins >= trail.price) {
                             if (onUnlockTrail(trail.id, trail.price)) {
                               onSelectTrail(trail.id);
@@ -605,15 +676,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                             audio.speakNarrator('insufficientCoins', settings);
                             showToast(t('insufficientCoins'));
                           }
+                          setTimeout(() => setProcessingKey(null), 180);
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu cursor-pointer ${
                           coins >= trail.price
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black'
                             : 'bg-slate-800 text-slate-400 border border-slate-700'
                         }`}
                       >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>{trail.price}</span>
+                        {isProcessing ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Lock className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isProcessing ? '...' : trail.price}</span>
                       </motion.button>
                     )}
                   </div>
@@ -628,6 +704,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({
               const fx = getLocalizedDeathEffect(rawFx, lang);
               const isUnlocked = safeUnlockedEffects.includes(fx.id);
               const isSelected = selectedDeathEffectId === fx.id;
+              const itemKey = `fx-${fx.id}`;
+              const isProcessing = processingKey === itemKey;
 
               return (
                 <motion.div
@@ -637,9 +715,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                   transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   onClick={() => {
                     if (isUnlocked && !isSelected) {
+                      setProcessingKey(itemKey);
                       onSelectDeathEffect(fx.id);
                       audio.playSfx('click', settings);
                       audio.speakNarrator('equipItem', settings);
+                      setTimeout(() => setProcessingKey(null), 150);
                     }
                   }}
                   className={`bg-slate-900/90 border rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md transition-colors cursor-pointer transform-gpu will-change-transform ${
@@ -673,13 +753,16 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           onSelectDeathEffect(fx.id);
                           audio.playSfx('click', settings);
                           audio.speakNarrator('equipItem', settings);
+                          setTimeout(() => setProcessingKey(null), 150);
                         }}
-                        className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu"
+                        className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-colors shadow-md transform-gpu flex items-center gap-1 cursor-pointer"
                       >
-                        {t('equip')}
+                        {isProcessing && <Loader2 className="w-3 h-3 animate-spin" />}
+                        <span>{t('equip')}</span>
                       </motion.button>
                     ) : (
                       <motion.button
@@ -688,6 +771,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                         transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={(e) => {
                           e.stopPropagation();
+                          setProcessingKey(itemKey);
                           if (coins >= fx.price) {
                             if (onUnlockDeathEffect(fx.id, fx.price)) {
                               onSelectDeathEffect(fx.id);
@@ -700,15 +784,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({
                             audio.speakNarrator('insufficientCoins', settings);
                             showToast(t('insufficientCoins'));
                           }
+                          setTimeout(() => setProcessingKey(null), 180);
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md transform-gpu cursor-pointer ${
                           coins >= fx.price
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black'
                             : 'bg-slate-800 text-slate-400 border border-slate-700'
                         }`}
                       >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>{fx.price}</span>
+                        {isProcessing ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Lock className="w-3.5 h-3.5" />
+                        )}
+                        <span>{isProcessing ? '...' : fx.price}</span>
                       </motion.button>
                     )}
                   </div>

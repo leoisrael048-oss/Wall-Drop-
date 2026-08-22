@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Lock, Coins, Play, Sparkles, Crown, Palette, CheckCircle2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Lock, Coins, Play, Sparkles, Crown, Loader2 } from 'lucide-react';
 import { CharacterId, CustomCharacterConfig, GameSettings } from '../types';
 import { INITIAL_CHARACTERS } from '../constants/gameData';
 import { audio } from '../utils/audio';
@@ -37,6 +38,7 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
   const t = (key: Parameters<typeof getTranslation>[0]) => getTranslation(key, lang);
 
   const [showOnlyUnlocked, setShowOnlyUnlocked] = useState(true);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   const isCustomActive = !!customChar?.enabled;
 
@@ -66,22 +68,28 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
   const displayAccentColor = isCustomActive && customChar?.accentColor ? customChar.accentColor : currentChar.accentColor;
 
   const handlePrev = () => {
+    setProcessingKey('prev');
     audio.playSfx('click', settings);
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : availableCharacters.length - 1));
+    setTimeout(() => setProcessingKey(null), 120);
   };
 
   const handleNext = () => {
+    setProcessingKey('next');
     audio.playSfx('click', settings);
     setCurrentIndex((prev) => (prev < availableCharacters.length - 1 ? prev + 1 : 0));
+    setTimeout(() => setProcessingKey(null), 120);
   };
 
   const handleAction = () => {
     if (isSelected) return;
+    setProcessingKey('action');
 
     if (isUnlocked) {
       onSelectCharacter(currentChar.id);
       audio.playSfx('coin', settings);
       audio.speakNarrator(currentChar.price >= 1000 || currentChar.isSecret ? 'selectRare' : 'selectCharacter', settings);
+      setTimeout(() => setProcessingKey(null), 150);
     } else {
       if (coins >= currentChar.price) {
         const success = onUnlockCharacter(currentChar.id, currentChar.price);
@@ -94,7 +102,32 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
         audio.playSfx('crash', settings);
         audio.speakNarrator('insufficientCoins', settings);
       }
+      setTimeout(() => setProcessingKey(null), 180);
     }
+  };
+
+  const handleBackWithAnimation = () => {
+    setProcessingKey('back');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onBack();
+    }, 120);
+  };
+
+  const handleWorkshopWithAnimation = () => {
+    setProcessingKey('workshop');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onOpenWorkshop?.();
+    }, 120);
+  };
+
+  const handleStartWithAnimation = () => {
+    setProcessingKey('start');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onStartGame();
+    }, 120);
   };
 
   return (
@@ -108,29 +141,47 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
 
       {/* Top Header */}
       <div className="w-full max-w-sm flex items-center justify-between z-10 pt-1">
-        <button
-          onClick={() => {
-            audio.playSfx('click', settings);
-            onBack();
-          }}
-          className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1.5 text-xs font-semibold"
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+          onClick={handleBackWithAnimation}
+          className={`p-2.5 rounded-xl border transition-all shadow-md flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
+            processingKey === 'back'
+              ? 'bg-slate-800 border-cyan-400 text-white ring-1 ring-cyan-400'
+              : 'bg-slate-900/90 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('back')}</span>
-        </button>
+          {processingKey === 'back' ? (
+            <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+          ) : (
+            <ArrowLeft className="w-4 h-4" />
+          )}
+          <span>{processingKey === 'back' ? 'VOLTANDO...' : t('back')}</span>
+        </motion.button>
 
         {/* Quick Workshop Button */}
         {onOpenWorkshop && (
-          <button
-            onClick={() => {
-              audio.playSfx('click', settings);
-              onOpenWorkshop();
-            }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 rounded-xl text-amber-300 text-xs font-extrabold shadow-sm active:scale-95 transition-all"
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={handleWorkshopWithAnimation}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer border ${
+              processingKey === 'workshop'
+                ? 'bg-amber-500/30 border-amber-400 text-white ring-1 ring-amber-400'
+                : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300'
+            }`}
           >
-            <Crown className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span>Oficina VIP</span>
-          </button>
+            {processingKey === 'workshop' ? (
+              <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+            ) : (
+              <Crown className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            )}
+            <span>{processingKey === 'workshop' ? 'ABRINDO...' : 'Oficina VIP'}</span>
+          </motion.button>
         )}
 
         <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 px-3 py-1.5 rounded-xl shadow-md">
@@ -142,35 +193,55 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
       {/* Character Type Mode Switch (Original vs Customizado VIP) */}
       <div className="w-full max-w-sm z-10 my-1">
         <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-md">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => {
+              setProcessingKey('mode-orig');
               audio.playSfx('click', settings);
               onToggleCustomChar?.(false);
+              setTimeout(() => setProcessingKey(null), 120);
             }}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+            className={`py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               !isCustomActive
                 ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            {processingKey === 'mode-orig' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
             <span>⭐ Modo Original</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => {
+              setProcessingKey('mode-vip');
               audio.playSfx('click', settings);
               onToggleCustomChar?.(true);
+              setTimeout(() => setProcessingKey(null), 120);
             }}
-            className={`py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+            className={`py-1.5 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               isCustomActive
                 ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-md shadow-amber-500/20'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Crown className="w-3.5 h-3.5 text-amber-950" />
+            {processingKey === 'mode-vip' ? (
+              <Loader2 className="w-3.5 h-3.5 text-amber-950 animate-spin" />
+            ) : (
+              <Crown className="w-3.5 h-3.5 text-amber-950" />
+            )}
             <span>👑 Customizado VIP</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -184,28 +255,46 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
             </span>
           </h2>
 
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => {
+              setProcessingKey('toggle-filter');
               audio.playSfx('click', settings);
               setShowOnlyUnlocked(!showOnlyUnlocked);
               setCurrentIndex(0);
+              setTimeout(() => setProcessingKey(null), 120);
             }}
-            className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 tracking-wider uppercase transition-colors"
+            className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-4 tracking-wider uppercase transition-colors flex items-center gap-1 cursor-pointer"
           >
-            {showOnlyUnlocked ? t('viewAll') : t('unlockedOnly')}
-          </button>
+            {processingKey === 'toggle-filter' && <Loader2 className="w-3 h-3 animate-spin inline" />}
+            <span>{showOnlyUnlocked ? t('viewAll') : t('unlockedOnly')}</span>
+          </motion.button>
         </div>
 
         {/* Cinematic Card Stage */}
         <div className="relative w-full flex items-center justify-center">
           {/* Left Arrow */}
           {availableCharacters.length > 1 && (
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.12 }}
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
               onClick={handlePrev}
-              className="absolute left-0 p-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-full text-slate-300 hover:text-white transition-all active:scale-90 z-20 shadow-xl shadow-black/50"
+              className={`absolute left-0 p-3 rounded-full transition-all z-20 shadow-xl shadow-black/50 border cursor-pointer ${
+                processingKey === 'prev'
+                  ? 'bg-cyan-900 border-cyan-400 text-white'
+                  : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white'
+              }`}
             >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
+              {processingKey === 'prev' ? (
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              ) : (
+                <ChevronLeft className="w-6 h-6" />
+              )}
+            </motion.button>
           )}
 
           {/* Center Cinematic Character Card */}
@@ -288,12 +377,24 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
 
           {/* Right Arrow */}
           {availableCharacters.length > 1 && (
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.12 }}
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
               onClick={handleNext}
-              className="absolute right-0 p-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 rounded-full text-slate-300 hover:text-white transition-all active:scale-90 z-20 shadow-xl shadow-black/50"
+              className={`absolute right-0 p-3 rounded-full transition-all z-20 shadow-xl shadow-black/50 border cursor-pointer ${
+                processingKey === 'next'
+                  ? 'bg-cyan-900 border-cyan-400 text-white'
+                  : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 text-slate-300 hover:text-white'
+              }`}
             >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+              {processingKey === 'next' ? (
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              ) : (
+                <ChevronRight className="w-6 h-6" />
+              )}
+            </motion.button>
           )}
         </div>
 
@@ -315,49 +416,89 @@ export const CharacterSelect: React.FC<CharacterSelectProps> = ({
       {/* Bottom Action Button */}
       <div className="w-full max-w-xs z-10 mb-1 flex flex-col gap-2">
         {isSelected ? (
-          <button
-            onClick={() => {
-              audio.playSfx('click', settings);
-              onStartGame();
-            }}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-black text-base tracking-wider shadow-xl shadow-cyan-500/30 active:scale-95 transition-all flex items-center justify-center gap-2 border border-cyan-400/50 relative overflow-hidden group"
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={handleStartWithAnimation}
+            className={`w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-black text-base tracking-wider shadow-xl shadow-cyan-500/30 transition-all flex items-center justify-center gap-2 border border-cyan-400/50 relative overflow-hidden group cursor-pointer ${
+              processingKey === 'start' ? 'brightness-125' : ''
+            }`}
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
-            <Play className="w-5 h-5 fill-current" />
-            <span>{t('startGame')}</span>
-          </button>
+            {processingKey === 'start' ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                <span className="animate-pulse">PROCESSANDO...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 fill-current" />
+                <span>{t('startGame')}</span>
+              </>
+            )}
+          </motion.button>
         ) : isUnlocked ? (
           <div className="flex flex-col gap-1.5 w-full">
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
               onClick={() => {
+                setProcessingKey('select-play');
                 handleAction();
                 audio.playSfx('click', settings);
-                onStartGame();
+                setTimeout(() => {
+                  onStartGame();
+                }, 120);
               }}
-              className="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-cyan-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-current" />
-              <span>{t('selectAndPlay')}</span>
-            </button>
-            <button
+              {processingKey === 'select-play' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+              ) : (
+                <Play className="w-4 h-4 fill-current" />
+              )}
+              <span>{processingKey === 'select-play' ? 'INICIANDO...' : t('selectAndPlay')}</span>
+            </motion.button>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
               onClick={handleAction}
-              className="w-full py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-bold text-xs tracking-wider hover:bg-slate-800 transition-all active:scale-95"
+              className="w-full py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-bold text-xs tracking-wider hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              {t('selectOnly')}
-            </button>
+              {processingKey === 'action' && <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />}
+              <span>{processingKey === 'action' ? 'SELECIONANDO...' : t('selectOnly')}</span>
+            </motion.button>
           </div>
         ) : (
-          <button
+          <motion.button
+            type="button"
+            whileHover={coins >= currentChar.price ? { scale: 1.03, y: -1 } : {}}
+            whileTap={coins >= currentChar.price ? { scale: 0.94 } : {}}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={handleAction}
-            className={`w-full py-3 rounded-2xl font-black text-xs tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${
+            className={`w-full py-3 rounded-2xl font-black text-xs tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer ${
               coins >= currentChar.price
                 ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
             }`}
           >
-            <Lock className="w-3.5 h-3.5" />
-            <span>{t('unlockFor').replace('{price}', String(currentChar.price))}</span>
-          </button>
+            {processingKey === 'action' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Lock className="w-3.5 h-3.5" />
+            )}
+            <span>
+              {processingKey === 'action'
+                ? 'DESBLOQUEANDO...'
+                : t('unlockFor').replace('{price}', String(currentChar.price))}
+            </span>
+          </motion.button>
         )}
       </div>
     </div>

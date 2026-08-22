@@ -20,7 +20,8 @@ import {
   Undo2,
   Gem,
   Info,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 import { 
   CustomCharacterConfig, 
@@ -80,6 +81,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
   const [characterSubTab, setCharacterSubTab] = useState<'palettes' | 'accessories' | 'auras'>('palettes');
   const [selectedRarityFilter, setSelectedRarityFilter] = useState<'ALL' | ItemRarity>('ALL');
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   // Live Instant Preview Override States
   const [previewChar, setPreviewChar] = useState<Partial<CustomCharacterConfig> | null>(null);
@@ -790,16 +792,20 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
 
       {/* Top Header Navigation Bar */}
       <div className="w-full max-w-md flex items-center justify-between z-10 pt-1 mb-1.5">
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
           onClick={() => {
             audio.playSfx('click', settings);
             onBack();
           }}
-          className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1.5 text-xs font-semibold"
+          className="p-2.5 bg-slate-900/90 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all shadow-md flex items-center gap-1.5 text-xs font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>{t('back')}</span>
-        </button>
+        </motion.button>
 
         <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/15 border border-amber-500/40 rounded-full shadow-sm">
           <Crown className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
@@ -841,13 +847,16 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
 
             {isPreviewing && (
               <div className="pointer-events-auto flex items-center gap-1">
-                <button
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={handleResetPreview}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-rose-600/90 hover:bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg shadow-rose-600/30 active:scale-95 transition-all animate-pulse"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-rose-600/90 hover:bg-rose-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-lg shadow-rose-600/30 transition-all animate-pulse"
                 >
                   <Undo2 className="w-3 h-3" />
                   <span>Desfazer Preview</span>
-                </button>
+                </motion.button>
               </div>
             )}
           </div>
@@ -872,7 +881,10 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
 
       {/* Navigation Tabs (Personagem / Fundo do Abismo / Aprimorar) */}
       <div className="w-full max-w-md grid grid-cols-3 gap-1.5 z-10 mb-2">
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.94 }}
           onClick={() => {
             audio.playSfx('click', settings);
             setActiveTab('character');
@@ -885,9 +897,12 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
         >
           <Palette className="w-3.5 h-3.5" />
           <span>{t('characterCustom')}</span>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.94 }}
           onClick={() => {
             audio.playSfx('click', settings);
             setActiveTab('background');
@@ -900,9 +915,12 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
         >
           <Layers className="w-3.5 h-3.5" />
           <span>{t('bgCustom')}</span>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.94 }}
           onClick={() => {
             audio.playSfx('click', settings);
             setActiveTab('upgrades');
@@ -915,7 +933,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
         >
           <Zap className="w-3.5 h-3.5" />
           <span>{t('upgrades')}</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Rarity Filter Bar for Palettes and Backgrounds */}
@@ -928,8 +946,11 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               : getRarityBadge(r).label;
 
             return (
-              <button
+              <motion.button
                 key={r}
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.92 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   setSelectedRarityFilter(r);
@@ -947,7 +968,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                 }`}
               >
                 {label}
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -969,7 +990,10 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                 <span className="text-xs font-bold text-white">{t('enableCustomChar')}</span>
                 <span className="text-[10px] text-slate-400">Aplica paleta, adornos e auras exclusivas</span>
               </div>
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.92 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   onSaveCustomChar({ enabled: !customChar.enabled });
@@ -981,12 +1005,15 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
                 }`}
               >
                 {customChar.enabled ? t('on') : t('off')}
-              </button>
+              </motion.button>
             </div>
 
             {/* Character Sub-Tabs Selector */}
             <div className="grid grid-cols-3 gap-1 p-1 bg-slate-950/80 rounded-xl border border-slate-800">
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   setCharacterSubTab('palettes');
@@ -999,9 +1026,12 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               >
                 <Palette className="w-3 h-3" />
                 <span>Paletas</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   setCharacterSubTab('accessories');
@@ -1014,9 +1044,12 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               >
                 <Crown className="w-3 h-3" />
                 <span>Adornos VIP</span>
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.94 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   setCharacterSubTab('auras');
@@ -1029,7 +1062,7 @@ export const CustomizerModal: React.FC<CustomizerModalProps> = ({
               >
                 <Sparkles className="w-3 h-3" />
                 <span>Auras 3D</span>
-              </button>
+              </motion.button>
             </div>
 
             {/* SUB-TAB 1: PALETAS DE CORES */}

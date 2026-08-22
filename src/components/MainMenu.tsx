@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, User, ShoppingBag, Award, Settings, Trophy, Coins, Sparkles, Crown, Palette, History, Flame, Target } from 'lucide-react';
+import { Play, User, ShoppingBag, Award, Settings, Trophy, Coins, Sparkles, Crown, Palette, History, Flame, Target, Mic, Lock, Loader2 } from 'lucide-react';
 import { GameScreen, GameSettings, PreviousRunData, CelebrationNotice } from '../types';
 import { getTranslation } from '../utils/i18n';
 import { audio } from '../utils/audio';
-import { getCelebrationNotice, clearCelebrationNotice } from '../utils/storage';
+import { getCelebrationNotice, clearCelebrationNotice, getNarratorUnlocked } from '../utils/storage';
 import { CelebrationNotification } from './CelebrationNotification';
 import { DustParticles } from './DustParticles';
 
@@ -30,6 +30,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const lang = settings?.language || 'pt';
   const t = (key: Parameters<typeof getTranslation>[0]) => getTranslation(key, lang);
   const [celebrationNotice, setCelebrationNotice] = useState<CelebrationNotice | null>(null);
+  const [processingBtn, setProcessingBtn] = useState<string | null>(null);
 
   // Trigger welcome narrator and load celebration notice
   useEffect(() => {
@@ -57,12 +58,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   };
 
   const handleStart = () => {
+    if (processingBtn) return;
+    setProcessingBtn('play');
     audio.playSfx('click', settings);
     audio.speakNarrator('start', settings);
-    onStartGame();
+    setTimeout(() => {
+      onStartGame();
+    }, 120);
   };
 
   const handleNav = (screen: GameScreen) => {
+    if (processingBtn) return;
+    setProcessingBtn(screen);
     audio.playSfx('click', settings);
     if (screen === 'characters') audio.speakNarrator('selectCharacter', settings);
     if (screen === 'shop') audio.speakNarrator('shopOpen', settings);
@@ -70,7 +77,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     if (screen === 'ranking') audio.speakNarrator('rankingOpen', settings);
     if (screen === 'settings') audio.speakNarrator('settingsOpen', settings);
     if (screen === 'workshop') audio.speakNarrator('workshopOpen', settings);
-    onNavigate(screen);
+    setTimeout(() => {
+      onNavigate(screen);
+    }, 120);
   };
 
   return (
@@ -192,10 +201,21 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleStart}
-          className="group relative w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white font-black text-xl tracking-wider shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 flex items-center justify-center gap-3 border border-cyan-400/40"
+          className={`group relative w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white font-black text-xl tracking-wider shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-200 flex items-center justify-center gap-3 border border-cyan-400/40 overflow-hidden ${
+            processingBtn === 'play' ? 'brightness-125 shadow-cyan-400/70' : ''
+          }`}
         >
-          <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform" />
-          <span>{t('play')}</span>
+          {processingBtn === 'play' ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin text-white" />
+              <span className="animate-pulse tracking-widest">INICIANDO...</span>
+            </>
+          ) : (
+            <>
+              <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform" />
+              <span>{t('play')}</span>
+            </>
+          )}
         </motion.button>
 
         {/* Workshop VIP Button (Customização & Aprimoramento 2000 Moedas) */}
@@ -204,19 +224,30 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           whileTap={{ scale: 0.96 }}
           onClick={() => handleNav('workshop')}
           className={`relative w-full py-2.5 px-3.5 rounded-xl border transition-all flex items-center justify-between shadow-lg overflow-hidden group ${
-            coins >= 2000
+            processingBtn === 'workshop'
+              ? 'bg-amber-500/30 border-amber-400 ring-2 ring-amber-400/50'
+              : coins >= 2000
               ? 'bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-purple-500/20 border-amber-400/70 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
               : 'bg-slate-900/90 border-slate-800 hover:border-amber-500/40'
           }`}
         >
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 shrink-0">
-              <Crown className="w-4 h-4 animate-bounce" />
+              {processingBtn === 'workshop' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+              ) : (
+                <Crown className="w-4 h-4 animate-bounce" />
+              )}
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-black text-amber-300 group-hover:text-amber-200 transition-colors flex items-center gap-1.5">
                 <span>{t('workshop')}</span>
-                {coins >= 2000 && (
+                {processingBtn === 'workshop' && (
+                  <span className="text-[9px] font-extrabold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full animate-pulse">
+                    CARREGANDO...
+                  </span>
+                )}
+                {processingBtn !== 'workshop' && coins >= 2000 && (
                   <span className="text-[9px] font-extrabold bg-amber-400 text-slate-950 px-1.5 py-0.2 rounded-full">
                     DISPONÍVEL
                   </span>
@@ -235,51 +266,136 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         {/* Secondary Menu Buttons Grid */}
         <div className="grid grid-cols-2 gap-2.5 w-full">
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => handleNav('characters')}
-            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-200 hover:text-white font-semibold text-xs tracking-wide transition-all shadow-md"
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition-all shadow-md active:shadow-none cursor-pointer border ${
+              processingBtn === 'characters'
+                ? 'bg-cyan-950 border-cyan-400 text-white ring-1 ring-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white'
+            }`}
           >
-            <User className="w-4 h-4 text-cyan-400" />
-            <span>{t('characters')}</span>
+            {processingBtn === 'characters' ? (
+              <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+            ) : (
+              <User className="w-4 h-4 text-cyan-400" />
+            )}
+            <span>{processingBtn === 'characters' ? 'CARREGANDO...' : t('characters')}</span>
           </motion.button>
 
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => handleNav('shop')}
-            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-200 hover:text-white font-semibold text-xs tracking-wide transition-all shadow-md"
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition-all shadow-md active:shadow-none cursor-pointer border ${
+              processingBtn === 'shop'
+                ? 'bg-purple-950 border-purple-400 text-white ring-1 ring-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.5)]'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white'
+            }`}
           >
-            <ShoppingBag className="w-4 h-4 text-purple-400" />
-            <span>{t('shop')}</span>
+            {processingBtn === 'shop' ? (
+              <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+            ) : (
+              <ShoppingBag className="w-4 h-4 text-purple-400" />
+            )}
+            <span>{processingBtn === 'shop' ? 'CARREGANDO...' : t('shop')}</span>
           </motion.button>
 
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => handleNav('challenge')}
-            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-200 hover:text-white font-semibold text-xs tracking-wide transition-all shadow-md"
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition-all shadow-md active:shadow-none cursor-pointer border ${
+              processingBtn === 'challenge'
+                ? 'bg-amber-950 border-amber-400 text-white ring-1 ring-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white'
+            }`}
           >
-            <Award className="w-4 h-4 text-amber-400" />
-            <span>{t('challenge')}</span>
+            {processingBtn === 'challenge' ? (
+              <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+            ) : (
+              <Award className="w-4 h-4 text-amber-400" />
+            )}
+            <span>{processingBtn === 'challenge' ? 'CARREGANDO...' : t('challenge')}</span>
           </motion.button>
 
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
             onClick={() => handleNav('ranking')}
-            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-xl text-slate-200 hover:text-white font-semibold text-xs tracking-wide transition-all shadow-md"
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-semibold text-xs tracking-wide transition-all shadow-md active:shadow-none cursor-pointer border ${
+              processingBtn === 'ranking'
+                ? 'bg-yellow-950 border-yellow-400 text-white ring-1 ring-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.5)]'
+                : 'bg-slate-900/90 hover:bg-slate-800 border-slate-800 hover:border-slate-700 text-slate-200 hover:text-white'
+            }`}
           >
-            <Trophy className="w-4 h-4 text-yellow-400" />
-            <span>{t('ranking')}</span>
+            {processingBtn === 'ranking' ? (
+              <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />
+            ) : (
+              <Trophy className="w-4 h-4 text-yellow-400" />
+            )}
+            <span>{processingBtn === 'ranking' ? 'CARREGANDO...' : t('ranking')}</span>
           </motion.button>
         </div>
 
-        {/* Settings button */}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => handleNav('settings')}
-          className="flex items-center justify-center gap-2 py-2 px-6 bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 rounded-xl text-slate-400 hover:text-white text-xs font-semibold tracking-wider transition-all"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          <span>{t('settings')}</span>
-        </motion.button>
+        {/* Bottom Actions Row: Settings & Narrador Viciante */}
+        <div className="grid grid-cols-2 gap-2.5 w-full">
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={() => handleNav('narrator')}
+            className={`flex items-center justify-between py-2 px-3 rounded-xl border text-xs font-bold tracking-wider transition-all shadow-md cursor-pointer ${
+              processingBtn === 'narrator'
+                ? 'bg-purple-950 border-purple-400 ring-1 ring-purple-400 text-white'
+                : getNarratorUnlocked()
+                ? 'bg-gradient-to-r from-purple-950/90 via-purple-900/80 to-slate-900/90 hover:from-purple-900 hover:to-slate-850 border-purple-500/50 text-purple-200 shadow-purple-950/50'
+                : 'bg-slate-950/90 hover:bg-slate-900 border-purple-500/30 text-purple-300'
+            }`}
+          >
+            <div className="flex items-center gap-1.5">
+              {processingBtn === 'narrator' ? (
+                <Loader2 className="w-3.5 h-3.5 text-pink-400 animate-spin" />
+              ) : (
+                <Mic className="w-3.5 h-3.5 text-pink-400 animate-pulse" />
+              )}
+              <span>{processingBtn === 'narrator' ? 'ABRINDO...' : 'NARRADOR VIP'}</span>
+            </div>
+            {!getNarratorUnlocked() ? (
+              <span className="flex items-center gap-1 text-[9px] font-black text-amber-400 bg-slate-900/90 px-1.5 py-0.5 rounded-md border border-amber-500/40 shrink-0">
+                <Lock className="w-2.5 h-2.5 text-amber-400" />
+                <span>3.000 🪙</span>
+              </span>
+            ) : (
+              <span className="text-[9px] font-black text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded-md border border-emerald-500/40 shrink-0">
+                VIP ✓
+              </span>
+            )}
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={() => handleNav('settings')}
+            className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold tracking-wider transition-all cursor-pointer border ${
+              processingBtn === 'settings'
+                ? 'bg-slate-800 border-cyan-400 text-white ring-1 ring-cyan-400'
+                : 'bg-slate-900/60 hover:bg-slate-800 border-slate-800/80 text-slate-400 hover:text-white'
+            }`}
+          >
+            {processingBtn === 'settings' ? (
+              <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+            ) : (
+              <Settings className="w-3.5 h-3.5" />
+            )}
+            <span>{processingBtn === 'settings' ? 'CARREGANDO...' : t('settings')}</span>
+          </motion.button>
+        </div>
       </motion.div>
     </motion.div>
   );

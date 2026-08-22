@@ -6,7 +6,8 @@ import {
   GameSettings, 
   CustomCharacterConfig, 
   CustomThemeConfig, 
-  PlayerUpgrades 
+  PlayerUpgrades,
+  Language
 } from '../types';
 import { audio } from '../utils/audio';
 
@@ -78,25 +79,281 @@ interface FloatingTextPoolItem {
   color: string;
 }
 
-const EMOJI_MEME_LIST = [
-  { emoji: '📞', label: 'Chamada da Mãe' },
-  { emoji: '🔋', label: 'Bateria 1%' },
-  { emoji: '💳', label: 'Fatura do Cartão' },
-  { emoji: '🤡', label: 'Mensagem do Ex' },
-  { emoji: '🚨', label: 'Trabalho' },
-  { emoji: '🧾', label: 'Boleto Vencido' },
-  { emoji: '💸', label: 'Pix Errado' },
-  { emoji: '⏰', label: 'Alarme 06:00' },
-  { emoji: '📶', label: 'Wi-Fi Caiu' },
-  { emoji: '☕', label: 'Acabou o Café' },
-  { emoji: '💻', label: 'Update Windows' },
-  { emoji: '📦', label: 'Entrega Atrasada' },
-  { emoji: '🛞', label: 'Pneu Furado' },
-  { emoji: '👀', label: 'Visto e Ignorado' },
-  { emoji: '💣', label: 'Taxa Surpresa' },
-  { emoji: '🔥', label: 'Bug em Produção' },
-  { emoji: '😱', label: 'Zero na Prova' },
+interface LocalizedMemeObstacle {
+  emoji: string;
+  labels: Record<Language, string>;
+}
+
+const MULTILINGUAL_MEME_OBSTACLES: LocalizedMemeObstacle[] = [
+  {
+    emoji: '📞',
+    labels: {
+      pt: 'Chamada da Mãe',
+      en: "Mom's Calling",
+      es: 'Llamada de Mamá',
+      fr: 'Appel de Maman',
+      de: 'Anruf von Mama',
+      it: 'Chiamata della Mamma',
+      ja: '母からの着信',
+      zh: '老妈来电',
+    },
+  },
+  {
+    emoji: '🔋',
+    labels: {
+      pt: 'Bateria 1%',
+      en: 'Battery 1%',
+      es: 'Batería 1%',
+      fr: 'Batterie 1%',
+      de: 'Akku 1%',
+      it: 'Batteria 1%',
+      ja: 'バッテリー1%',
+      zh: '电量1%',
+    },
+  },
+  {
+    emoji: '💳',
+    labels: {
+      pt: 'Fatura do Cartão',
+      en: 'Credit Card Bill',
+      es: 'Factura Tarjeta',
+      fr: 'Facture Carte',
+      de: 'Kreditkartenrechnung',
+      it: 'Estratto Conto',
+      ja: 'カード請求書',
+      zh: '信用卡账单',
+    },
+  },
+  {
+    emoji: '🤡',
+    labels: {
+      pt: 'Mensagem do Ex',
+      en: "Ex's Text",
+      es: 'Mensaje del Ex',
+      fr: 'Message de l’Ex',
+      de: 'Nachricht vom Ex',
+      it: 'Messaggio dell’Ex',
+      ja: '元恋人のLINE',
+      zh: '前任发来的消息',
+    },
+  },
+  {
+    emoji: '🚨',
+    labels: {
+      pt: 'Hora Extra / Trabalho',
+      en: 'Overtime / Work',
+      es: 'Horas Extra / Trabajo',
+      fr: 'Heures Sup / Travail',
+      de: 'Überstunden / Arbeit',
+      it: 'Straordinari Lavoro',
+      ja: '残業 / 労働',
+      zh: '临时加班 / 工作',
+    },
+  },
+  {
+    emoji: '🧾',
+    labels: {
+      pt: 'Boleto Vencido',
+      en: 'Overdue Bill',
+      es: 'Factura Vencida',
+      fr: 'Facture Impayée',
+      de: 'Überfällige Rechnung',
+      it: 'Bolletta Scaduta',
+      ja: '未払い請求書',
+      zh: '逾期催缴单',
+    },
+  },
+  {
+    emoji: '💸',
+    labels: {
+      pt: 'Pix Errado',
+      en: 'Wrong Transfer',
+      es: 'Transferencia Errónea',
+      fr: 'Mauvais Virement',
+      de: 'Falsche Überweisung',
+      it: 'Bonifico Errato',
+      ja: '誤送金トラブル',
+      zh: '转错账',
+    },
+  },
+  {
+    emoji: '⏰',
+    labels: {
+      pt: 'Alarme 06:00',
+      en: 'Alarm 06:00',
+      es: 'Alarma 06:00',
+      fr: 'Alarme 06:00',
+      de: 'Wecker 06:00',
+      it: 'Sveglia 06:00',
+      ja: 'アラーム 06:00',
+      zh: '早晨闹钟 06:00',
+    },
+  },
+  {
+    emoji: '📶',
+    labels: {
+      pt: 'Wi-Fi Caiu',
+      en: 'Wi-Fi Dropped',
+      es: 'Wi-Fi Caído',
+      fr: 'Wi-Fi Coupé',
+      de: 'WLAN Weg',
+      it: 'Wi-Fi Caduto',
+      ja: 'Wi-Fi切断',
+      zh: 'Wi-Fi断网',
+    },
+  },
+  {
+    emoji: '☕',
+    labels: {
+      pt: 'Acabou o Café',
+      en: 'Out of Coffee',
+      es: 'Sin Café',
+      fr: 'Plus de Café',
+      de: 'Kaffee ist Aus',
+      it: 'Finito il Caffè',
+      ja: 'コーヒー切れ',
+      zh: '咖啡喝光了',
+    },
+  },
+  {
+    emoji: '💻',
+    labels: {
+      pt: 'Update do Sistema',
+      en: 'System Update',
+      es: 'Actualización SO',
+      fr: 'Mise à Jour Système',
+      de: 'System-Update',
+      it: 'Aggiornamento Sistema',
+      ja: '強制システム更新',
+      zh: '强制系统更新',
+    },
+  },
+  {
+    emoji: '📦',
+    labels: {
+      pt: 'Entrega Atrasada',
+      en: 'Delayed Package',
+      es: 'Paquete Atrasado',
+      fr: 'Colis en Retard',
+      de: 'Verspätetes Paket',
+      it: 'Pacco in Ritardo',
+      ja: '配達遅延',
+      zh: '快递延误',
+    },
+  },
+  {
+    emoji: '🛞',
+    labels: {
+      pt: 'Pneu Furado',
+      en: 'Flat Tire',
+      es: 'Neumático Pinchado',
+      fr: 'Pneu Crevé',
+      de: 'Platter Reifen',
+      it: 'Gomma a Terra',
+      ja: 'パンクしたタイヤ',
+      zh: '汽车爆胎',
+    },
+  },
+  {
+    emoji: '👀',
+    labels: {
+      pt: 'Visto e Ignorado',
+      en: 'Left on Read',
+      es: 'Visto y Dejado',
+      fr: 'Vu et Ignoré',
+      de: 'Gelesen & Ignoriert',
+      it: 'Visualizzato e Ignorato',
+      ja: '既読スルー',
+      zh: '已读不回',
+    },
+  },
+  {
+    emoji: '💣',
+    labels: {
+      pt: 'Taxa Surpresa',
+      en: 'Hidden Fee',
+      es: 'Tarifa Sorpresa',
+      fr: 'Frais Cachés',
+      de: 'Versteckte Gebühr',
+      it: 'Tassa a Sorpresa',
+      ja: '隠し手数料',
+      zh: '隐形扣费',
+    },
+  },
+  {
+    emoji: '🔥',
+    labels: {
+      pt: 'Bug em Produção',
+      en: 'Prod Bug',
+      es: 'Bug en Producción',
+      fr: 'Bug en Prod',
+      de: 'Produktions-Bug',
+      it: 'Bug in Produzione',
+      ja: '本番バグ発生',
+      zh: '线上生产事故',
+    },
+  },
+  {
+    emoji: '😱',
+    labels: {
+      pt: 'Nota Zero',
+      en: 'Failed Exam',
+      es: 'Nota Cero',
+      fr: 'Note Zéro',
+      de: 'Prüfung Nicht Bestanden',
+      it: 'Voto Zero',
+      ja: 'テスト赤点',
+      zh: '考试挂科',
+    },
+  },
 ];
+
+const getLocalizedMeme = (index: number, lang: Language = 'pt') => {
+  const item = MULTILINGUAL_MEME_OBSTACLES[index % MULTILINGUAL_MEME_OBSTACLES.length];
+  return {
+    emoji: item.emoji,
+    label: item.labels[lang] || item.labels.pt || 'Obstáculo',
+  };
+};
+
+const PATTERN_PREFIX_BY_LANG: Record<Language, {
+  center: string;
+  spinner: string;
+  zigzag: string;
+  diagonal: string;
+  arc: string;
+}> = {
+  pt: { center: '⚠️ MEIO', spinner: '🌪️ GIRO', zigzag: '⚡ ZIGZAG', diagonal: '↘️ DIAGONAL', arc: '🌀 ARCO' },
+  en: { center: '⚠️ CENTER', spinner: '🌪️ SPIN', zigzag: '⚡ ZIGZAG', diagonal: '↘️ DIAGONAL', arc: '🌀 ARC' },
+  es: { center: '⚠️ CENTRO', spinner: '🌪️ GIRO', zigzag: '⚡ ZIGZAG', diagonal: '↘️ DIAGONAL', arc: '🌀 ARCO' },
+  fr: { center: '⚠️ CENTRE', spinner: '🌪️ ROTATION', zigzag: '⚡ ZIGZAG', diagonal: '↘️ DIAGONALE', arc: '🌀 ARC' },
+  de: { center: '⚠️ MITTE', spinner: '🌪️ DREHUNG', zigzag: '⚡ ZICKZACK', diagonal: '↘️ DIAGONAL', arc: '🌀 BOGEN' },
+  it: { center: '⚠️ CENTRO', spinner: '🌪️ GIRO', zigzag: '⚡ ZIGZAG', diagonal: '↘️ DIAGONALE', arc: '🌀 ARCO' },
+  ja: { center: '⚠️ 中央', spinner: '🌪️ 回転', zigzag: '⚡ ジグザグ', diagonal: '↘️ 斜め', arc: '🌀 カーブ' },
+  zh: { center: '⚠️ 居中', spinner: '🌪️ 旋转', zigzag: '⚡ 之字', diagonal: '↘️ 对角', arc: '🌀 弧线' },
+};
+
+const NEAR_MISS_TEXT_BY_LANG: Record<Language, string> = {
+  pt: 'QUASE! +50',
+  en: 'CLOSE! +50',
+  es: '¡CASI! +50',
+  fr: 'FRÔLÉ ! +50',
+  de: 'KNAPP! +50',
+  it: 'QUASI! +50',
+  ja: 'ギリギリ! +50',
+  zh: '极限擦边! +50',
+};
+
+const SECOND_CHANCE_TEXT_BY_LANG: Record<Language, string> = {
+  pt: 'SEGUNDA CHANCE! 🛡️',
+  en: 'SECOND CHANCE! 🛡️',
+  es: '¡SEGUNDA OPORTUNIDAD! 🛡️',
+  fr: 'SECONDE CHANCE ! 🛡️',
+  de: 'ZWEITE CHANCE! 🛡️',
+  it: 'SECONDA CHANCE! 🛡️',
+  ja: '復活チャンス! 🛡️',
+  zh: '二次重生! 🛡️',
+};
 
 const TIER_PALETTES = [
   { name: 'NORMAL', wallGlow: '#06b6d4', obstacleColor: '#f43f5e', accentBg: '#090d16', tagColor: '#f43f5e' },
@@ -471,10 +728,11 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
     // =========================================================================
     // INICIALIZAÇÃO & LIMPEZA DO POOL FIXO DE OBSTÁCULOS (Trava Rígida em 5 Objetos)
     // =========================================================================
+    const initialLang = (propsRef.current.settings?.language || 'pt') as Language;
     s.obstacles = [];
     for (let i = 0; i < MAX_OBSTACLES; i++) {
       if (s.obstacles.length >= 5) break; // Trava estrita de segurança
-      const meme = EMOJI_MEME_LIST[i % EMOJI_MEME_LIST.length];
+      const meme = getLocalizedMeme(i, initialLang);
       const pattern = getRandomPattern(i);
       s.obstacles.push({
         id: i,
@@ -585,10 +843,14 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
 
       if (!currentProps.isPaused && !s.isGameOver && !s.isGameWon) {
         // =========================================================================
-        // 1. SISTEMA DE VELOCIDADE 2X COM LERP GRADUAL & TETO MÁXIMO DE 500 PX/S
+        // 1. SISTEMA DINÂMICO DE DIFICULDADE (MARCOS DE PONTUAÇÃO & LERP GRADUAL)
         // =========================================================================
         const tier = Math.floor(s.score / 50);
-        let targetMultiplier = Math.pow(1.10, Math.min(tier, 5)) * GLOBAL_SPEED_FACTOR;
+        // Cada marco de 25 pontos adiciona uma aceleração suave de +3.5%
+        const milestoneCount = Math.floor(s.score / 25);
+        const milestoneSpeedFactor = 1.0 + Math.min(0.50, milestoneCount * 0.035);
+        const tierBaseMultiplier = Math.pow(1.08, Math.min(tier, 6));
+        let targetMultiplier = tierBaseMultiplier * milestoneSpeedFactor * GLOBAL_SPEED_FACTOR;
 
         // Ativação do HYPER RUSH com teto de combo
         if (s.combo >= 10 && s.combo % 10 === 0 && s.combo !== s.lastCombo10Trigger) {
@@ -656,19 +918,24 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         s.speedMultiplier = s.currentSpeed / BASE_SPEED;
         s.currentTier = tier;
 
-        // Disparo do Marco de 50 Pontos
-        if (s.score > 0 && s.score % 50 === 0 && s.score !== s.lastMilestoneReached) {
+        // Disparo dinâmico ao atingir Marcos de Pontuação (a cada 25 pontos)
+        if (s.score > 0 && s.score % 25 === 0 && s.score !== s.lastMilestoneReached) {
           s.lastMilestoneReached = s.score;
           s.zoomFactor = 1.08;
           s.intensityFlash = 0.9;
 
+          const pctIncrease = Math.round((milestoneSpeedFactor - 1) * 100);
           const tierInfo = TIER_PALETTES[Math.min(tier, TIER_PALETTES.length - 1)];
           try {
             audio.playSfx('diff_up', currentProps.settings);
           } catch (e) {
             console.warn('[Audio catch on diff_up]:', e);
           }
-          currentProps.onFeedback?.(`⚡ ACELERAÇÃO! [NÍVEL ${tier + 1}: ${tierInfo.name}] 🔥`);
+          if (s.score % 50 === 0) {
+            currentProps.onFeedback?.(`⚡ MARCO ${s.score} PTS! [NÍVEL ${tier + 1}: ${tierInfo.name}] 🔥`);
+          } else {
+            currentProps.onFeedback?.(`⚡ ACELERAÇÃO! MARCO ${s.score} PTS (+${pctIncrease}% VEL.) 🚀`);
+          }
         }
 
         // Recuperação suave do efeito de Zoom Punch
@@ -933,14 +1200,16 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
               s.score += bonusScore;
               currentProps.onScoreUpdate(s.score, s.coins, s.combo);
 
-              spawnFloatingText('QUASE! +50', s.currentX, s.y - 20, '#facc15');
+              const currentLang = (currentProps.settings?.language || 'pt') as Language;
+              const nearMissText = NEAR_MISS_TEXT_BY_LANG[currentLang] || NEAR_MISS_TEXT_BY_LANG.pt;
+              spawnFloatingText(nearMissText, s.currentX, s.y - 20, '#facc15');
 
               try {
                 audio.playSfx('near_miss', currentProps.settings);
               } catch (e) {
                 console.warn('[Audio catch on near_miss]:', e);
               }
-              currentProps.onFeedback?.('QUASE! +50 PTS! 🔥');
+              currentProps.onFeedback?.(`${nearMissText} PTS! 🔥`);
             }
           }
 
@@ -1009,7 +1278,8 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
             obs.spinSpeed = obs.pattern === 'spinner' ? 7.8 : (Math.random() - 0.5) * 1.8;
             obs.arcDirection = s.memeIndex % 2 === 0 ? 1 : -1;
             
-            const meme = EMOJI_MEME_LIST[s.memeIndex % EMOJI_MEME_LIST.length];
+            const currentLang = (currentProps.settings?.language || 'pt') as Language;
+            const meme = getLocalizedMeme(s.memeIndex, currentLang);
             s.memeIndex++;
             obs.emoji = meme.emoji;
             obs.label = meme.label;
@@ -1236,17 +1506,20 @@ export const CanvasGame: React.FC<CanvasGameProps> = ({
         ctx.save();
         ctx.translate(emojiCenterX, emojiCenterY + obs.radius + 16);
 
+        const currentLang = (currentProps.settings?.language || 'pt') as Language;
+        const prefixMap = PATTERN_PREFIX_BY_LANG[currentLang] || PATTERN_PREFIX_BY_LANG.pt;
+
         ctx.font = 'bold 11px sans-serif';
         const labelText = isCenter 
-          ? `⚠️ MEIO: ${obs.label}` 
+          ? `${prefixMap.center}: ${obs.label}` 
           : isSpinner 
-            ? `🌪️ GIRO: ${obs.label}` 
+            ? `${prefixMap.spinner}: ${obs.label}` 
             : isZigzag 
-              ? `⚡ ZIGZAG: ${obs.label}` 
+              ? `${prefixMap.zigzag}: ${obs.label}` 
               : isDiagLeft || isDiagRight
-                ? `↘️ DIAGONAL: ${obs.label}`
+                ? `${prefixMap.diagonal}: ${obs.label}`
                 : isArc
-                  ? `🌀 ARCO: ${obs.label}`
+                  ? `${prefixMap.arc}: ${obs.label}`
                   : obs.label;
 
         const badgeW = labelText.length * 6.8 + 14;

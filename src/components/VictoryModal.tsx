@@ -1,5 +1,6 @@
-import React from 'react';
-import { Trophy, Flame, Sparkles, Home, RotateCcw, Share2, Coins, Crown } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import { Trophy, Flame, Sparkles, Home, RotateCcw, Share2, Coins, Crown, Loader2 } from 'lucide-react';
 import { GameSettings } from '../types';
 import { getTranslation } from '../utils/i18n';
 import { audio } from '../utils/audio';
@@ -26,6 +27,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   onShare,
 }) => {
   const lang = settings?.language || 'pt';
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   const victoryTitle = lang === 'en'
     ? 'GAME BEATEN! 🏆'
@@ -45,9 +47,46 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
     ? '¡Alcanzaste el hito definitivo de 7000 combos consecutivos en una sola partida! ¡Eres una leyenda viva de Wall Drop!'
     : 'Você alcançou a marca suprema de 7000 combos consecutivos em uma única partida! Você é uma lenda viva do Wall Drop!';
 
+  const handleRestartClick = () => {
+    setProcessingKey('restart');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onRestart();
+    }, 120);
+  };
+
+  const handleShareClick = () => {
+    setProcessingKey('share');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onShare();
+      setProcessingKey(null);
+    }, 120);
+  };
+
+  const handleHomeClick = () => {
+    setProcessingKey('home');
+    audio.playSfx('click', settings);
+    audio.speakNarrator('returnMenu', settings);
+    setTimeout(() => {
+      onHome();
+    }, 120);
+  };
+
   return (
-    <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="w-full max-w-sm bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border-2 border-amber-400/80 rounded-3xl p-6 shadow-2xl shadow-amber-500/20 text-center relative overflow-hidden flex flex-col items-center">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 select-none"
+    >
+      <motion.div 
+        initial={{ scale: 0.82, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.88, opacity: 0 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 320 }}
+        className="w-full max-w-sm bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border-2 border-amber-400/80 rounded-3xl p-6 shadow-2xl shadow-amber-500/20 text-center relative overflow-hidden flex flex-col items-center"
+      >
         {/* Glow ambient background halo */}
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -101,41 +140,57 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 
         {/* Action Buttons */}
         <div className="w-full flex flex-col gap-2">
-          <button
-            onClick={() => {
-              audio.playSfx('click', settings);
-              onRestart();
-            }}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-wider"
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={handleRestartClick}
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all uppercase tracking-wider cursor-pointer"
           >
-            <RotateCcw className="w-4 h-4" />
-            {getTranslation('playAgain', lang)}
-          </button>
+            {processingKey === 'restart' ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+            ) : (
+              <RotateCcw className="w-4 h-4" />
+            )}
+            <span>{processingKey === 'restart' ? 'REINICIANDO...' : getTranslation('playAgain', lang)}</span>
+          </motion.button>
 
           <div className="flex gap-2 w-full">
-            <button
-              onClick={() => {
-                audio.playSfx('click', settings);
-                onShare();
-              }}
-              className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-2xl border border-cyan-500/30 flex items-center justify-center gap-1.5 transition-all active:scale-95"
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+              onClick={handleShareClick}
+              className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs rounded-2xl border border-cyan-500/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
             >
-              <Share2 className="w-4 h-4" />
-              Compartilhar
-            </button>
-            <button
-              onClick={() => {
-                audio.playSfx('click', settings);
-                onHome();
-              }}
-              className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-2xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all active:scale-95"
+              {processingKey === 'share' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
+              ) : (
+                <Share2 className="w-4 h-4" />
+              )}
+              <span>Compartilhar</span>
+            </motion.button>
+
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+              onClick={handleHomeClick}
+              className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-2xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
             >
-              <Home className="w-4 h-4" />
-              {getTranslation('menu', lang)}
-            </button>
+              {processingKey === 'home' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+              ) : (
+                <Home className="w-4 h-4" />
+              )}
+              <span>{processingKey === 'home' ? 'VOLTANDO...' : getTranslation('menu', lang)}</span>
+            </motion.button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

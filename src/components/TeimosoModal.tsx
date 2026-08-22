@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trophy, Share2, X, Sparkles, Skull, Flame } from 'lucide-react';
+import { motion } from 'motion/react';
 import { GameSettings } from '../types';
 import { audio } from '../utils/audio';
 
@@ -28,8 +29,11 @@ export const TeimosoModal: React.FC<TeimosoModalProps> = ({
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-600/30 rounded-full blur-3xl pointer-events-none" />
 
         {/* Close button */}
-        <button
+        <motion.button
           id="close-teimoso-modal-btn"
+          type="button"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => {
             audio.playSfx('click', settings);
             onClose();
@@ -37,7 +41,7 @@ export const TeimosoModal: React.FC<TeimosoModalProps> = ({
           className="absolute top-4 right-4 p-2 text-stone-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 transition-colors"
         >
           <X className="w-5 h-5" />
-        </button>
+        </motion.button>
 
         {/* Bronze Trophy / Skull Banner */}
         <div className="relative mx-auto mt-2 mb-4 w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 border-2 border-amber-400/80 flex items-center justify-center shadow-xl shadow-amber-900/60 animate-trophy-spin">
@@ -69,20 +73,26 @@ export const TeimosoModal: React.FC<TeimosoModalProps> = ({
 
         {/* Buttons */}
         <div className="flex flex-col gap-2.5 mt-5">
-          <button
+          <motion.button
             id="share-shame-btn"
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               audio.playSfx('click', settings);
               onShareShame();
             }}
-            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 text-white font-black text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-lg shadow-amber-900/50 active:scale-95 transition-all"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 text-white font-black text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-lg shadow-amber-900/50 transition-all"
           >
             <Share2 className="w-4 h-4" />
             COMPARTILHAR ESSA VERGONHA 💀
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             id="continue-falling-btn"
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               audio.playSfx('click', settings);
               onClose();
@@ -90,7 +100,7 @@ export const TeimosoModal: React.FC<TeimosoModalProps> = ({
             className="w-full py-3 px-4 rounded-2xl bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white font-bold text-xs tracking-wider transition-colors"
           >
             Continuar caindo...
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>

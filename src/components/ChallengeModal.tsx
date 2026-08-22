@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { 
   ArrowLeft, 
   Award, 
@@ -10,7 +11,8 @@ import {
   Lock,
   X,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { 
   DailyMission, 
@@ -61,6 +63,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   const [selectedAchievement, setSelectedAchievement] = useState<AchievementItem | null>(null);
   const [flyingCoins, setFlyingCoins] = useState<FlyingCoin[]>([]);
   const [displayedCoins, setDisplayedCoins] = useState(coins);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   useEffect(() => {
     setDisplayedCoins(coins);
@@ -83,6 +86,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
   const handleClaimReward = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!dailyRewardState.canClaimToday) return;
 
+    setProcessingKey('claim-daily');
     const rect = e.currentTarget.getBoundingClientRect();
     const startX = rect.left + rect.width / 2;
     const startY = rect.top;
@@ -98,59 +102,68 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
 
     audio.playSfx('coin', settings);
     audio.speakNarrator('missionComplete', settings);
+
     const res = onClaimDailyReward();
+    setDisplayedCoins((prev) => prev + res.coinsEarned);
 
-    if (res.coinsEarned > 0) {
-      if (res.rewardItem) {
-        setRewardClaimMsg(`+${res.coinsEarned} ${t('coins')} & ${res.rewardItem}!`);
-      } else {
-        setRewardClaimMsg(`+${res.coinsEarned} ${t('coins')}!`);
-      }
+    let msg = `+${res.coinsEarned} Moedas Coletadas!`;
+    if (res.rewardItem) {
+      msg += ` ✨ ${res.rewardItem} desbloqueado!`;
     }
+    setRewardClaimMsg(msg);
+    setTimeout(() => setProcessingKey(null), 200);
+  };
 
+  const handleBackWithAnimation = () => {
+    setProcessingKey('back');
+    audio.playSfx('click', settings);
+    audio.speakNarrator('returnMenu', settings);
     setTimeout(() => {
-      setFlyingCoins([]);
-    }, 1200);
+      onBack();
+    }, 120);
   };
 
   return (
-    <div
-      id="challenge-missions-modal"
-      className="relative w-full h-full flex flex-col justify-between items-center p-4 sm:p-6 bg-slate-950 text-white overflow-hidden select-none"
-    >
-      {/* Ambient background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative w-full h-full flex flex-col justify-between items-center p-6 bg-slate-950 text-white overflow-hidden select-none">
+      {/* Background Decorative Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Floating Coin Burst Particles for Daily Reward */}
+      {/* Flying Coin Particles Animation */}
       {flyingCoins.map((coin) => (
         <div
           key={coin.id}
-          className="fixed z-50 pointer-events-none flex items-center justify-center text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]"
           style={{
             left: `${coin.startX}px`,
             top: `${coin.startY}px`,
-            animation: `coinFly 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`,
             animationDelay: `${coin.delay}s`,
           }}
+          className="fixed z-50 pointer-events-none animate-coin-fly text-amber-400 font-black text-sm flex items-center gap-0.5"
         >
-          <Coins className="w-6 h-6 fill-amber-400 animate-spin" />
+          <Coins className="w-5 h-5 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] fill-amber-300" />
         </div>
       ))}
 
       {/* Top Header */}
-      <div className="w-full max-w-md flex items-center justify-between z-10 pt-2 shrink-0">
-        <button
-          id="challenge-back-btn"
-          onClick={() => {
-            audio.playSfx('click', settings);
-            audio.speakNarrator('returnMenu', settings);
-            onBack();
-          }}
-          className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1.5 text-xs font-bold"
+      <div className="w-full max-w-md flex items-center justify-between z-10 pt-2">
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+          onClick={handleBackWithAnimation}
+          className={`p-2.5 rounded-xl border transition-all shadow-md flex items-center gap-1 text-xs font-semibold cursor-pointer ${
+            processingKey === 'back'
+              ? 'bg-slate-800 border-amber-400 text-white ring-1 ring-amber-400'
+              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('menu')}</span>
-        </button>
+          {processingKey === 'back' ? (
+            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+          ) : (
+            <ArrowLeft className="w-4 h-4" />
+          )}
+          <span>{processingKey === 'back' ? 'VOLTANDO...' : t('menu')}</span>
+        </motion.button>
 
         <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 px-3.5 py-1.5 rounded-full shadow-md">
           <Coins className="w-4 h-4 text-amber-400" />
@@ -166,53 +179,80 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
 
         {/* Tab Selector */}
         <div className="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800/90 w-full mb-3 shrink-0">
-          <button
+          <motion.button
+            type="button"
             id="tab-daily-reward-btn"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => {
+              setProcessingKey('tab-reward');
               audio.playSfx('click', settings);
               setActiveTab('reward');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
-            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'reward'
-                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md scale-102'
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Gift className="w-4 h-4 shrink-0" />
+            {processingKey === 'tab-reward' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Gift className="w-4 h-4 shrink-0" />
+            )}
             <span>{t('dailyRewardTab')}</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
             id="tab-missions-btn"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => {
+              setProcessingKey('tab-missions');
               audio.playSfx('click', settings);
               setActiveTab('missions');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
-            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'missions'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md scale-102'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Award className="w-4 h-4 shrink-0" />
+            {processingKey === 'tab-missions' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Award className="w-4 h-4 shrink-0" />
+            )}
             <span>{t('missionsTab')}</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            type="button"
             id="tab-achievements-btn"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.93 }}
             onClick={() => {
+              setProcessingKey('tab-achievements');
               audio.playSfx('click', settings);
               setActiveTab('achievements');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
-            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'achievements'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md scale-102'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Trophy className="w-4 h-4 shrink-0" />
+            {processingKey === 'tab-achievements' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trophy className="w-4 h-4 shrink-0" />
+            )}
             <span>{t('achievementsTab')}</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* TAB 1: DAILY REWARD STREAK */}
@@ -273,19 +313,33 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
                   ✨ {rewardClaimMsg}
                 </div>
               ) : (
-                <button
+                <motion.button
+                  type="button"
                   id="claim-daily-reward-btn"
-                  disabled={!dailyRewardState.canClaimToday}
+                  disabled={!dailyRewardState.canClaimToday || processingKey === 'claim-daily'}
+                  whileHover={dailyRewardState.canClaimToday ? { scale: 1.03, y: -1 } : {}}
+                  whileTap={dailyRewardState.canClaimToday ? { scale: 0.94 } : {}}
+                  transition={{ type: 'spring', stiffness: 450, damping: 20 }}
                   onClick={handleClaimReward}
-                  className={`w-full py-3.5 rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-lg ${
+                  className={`w-full py-3.5 rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer ${
                     dailyRewardState.canClaimToday
-                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 hover:brightness-110 active:scale-95 shadow-amber-500/30 animate-claim-breath'
+                      ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 shadow-amber-500/30 animate-claim-breath'
                       : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                   }`}
                 >
-                  <Gift className="w-4 h-4" />
-                  <span>{dailyRewardState.canClaimToday ? t('claimDailyReward') : t('alreadyClaimed')}</span>
-                </button>
+                  {processingKey === 'claim-daily' ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  ) : (
+                    <Gift className="w-4 h-4" />
+                  )}
+                  <span>
+                    {processingKey === 'claim-daily'
+                      ? 'RESGATANDO...'
+                      : dailyRewardState.canClaimToday
+                      ? t('claimDailyReward')
+                      : t('alreadyClaimed')}
+                  </span>
+                </motion.button>
               )}
             </div>
           </div>
@@ -298,6 +352,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
               const mission = getLocalizedMission(rawMission, lang);
               const progressPercent = Math.min(100, Math.round((mission.progress / mission.target) * 100));
               const isReadyToClaim = mission.completed && !mission.claimed;
+              const isClaiming = processingKey === `mission-${mission.id}`;
 
               return (
                 <div
@@ -346,18 +401,28 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
                         {t('claimed')}
                       </span>
                     ) : isReadyToClaim ? (
-                      <button
+                      <motion.button
+                        type="button"
                         id={`claim-mission-${mission.id}-btn`}
+                        whileHover={{ scale: 1.06 }}
+                        whileTap={{ scale: 0.90 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                         onClick={() => {
+                          setProcessingKey(`mission-${mission.id}`);
                           audio.playSfx('coin', settings);
                           audio.speakNarrator('missionComplete', settings);
                           onClaimMissionReward(mission.id);
+                          setTimeout(() => setProcessingKey(null), 180);
                         }}
-                        className="px-3.5 py-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black rounded-xl text-[10px] uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-amber-500/30 animate-claim-breath shrink-0 flex items-center gap-1"
+                        className="px-3.5 py-2 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black rounded-xl text-[10px] uppercase tracking-wider transition-all shadow-lg shadow-amber-500/30 animate-claim-breath shrink-0 flex items-center gap-1 cursor-pointer"
                       >
-                        <Sparkles className="w-3 h-3" />
-                        {t('claim')}
-                      </button>
+                        {isClaiming ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="w-3 h-3" />
+                        )}
+                        <span>{isClaiming ? '...' : t('claim')}</span>
+                      </motion.button>
                     ) : (
                       <span className="px-3 py-1.5 bg-slate-950 text-slate-400 border border-slate-800 rounded-xl text-[10px] font-bold shrink-0 font-mono">
                         {progressPercent}%
@@ -379,14 +444,19 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
               const isSpecial = ach.id === 'ach_stubborn_supreme';
 
               return (
-                <div
+                <motion.div
                   key={ach.id}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                   style={{ animationDelay: `${idx * 60}ms` }}
                   onClick={() => {
+                    setProcessingKey(`ach-${ach.id}`);
                     audio.playSfx('click', settings);
                     setSelectedAchievement(ach);
+                    setTimeout(() => setProcessingKey(null), 100);
                   }}
-                  className={`animate-cascade relative overflow-hidden rounded-2xl p-3.5 flex flex-col gap-2 shadow-md cursor-pointer transition-all active:scale-98 border ${
+                  className={`animate-cascade relative overflow-hidden rounded-2xl p-3.5 flex flex-col gap-2 shadow-md cursor-pointer transition-all border ${
                     ach.completed
                       ? isSpecial
                         ? 'bg-gradient-to-r from-amber-950/50 via-stone-900 to-stone-900 border-amber-500/60 shadow-amber-900/30'
@@ -447,7 +517,7 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
                       {ach.progress}/{ach.target}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -460,13 +530,21 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
           id="achievement-detail-modal"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
         >
-          <div className="relative w-full max-w-xs overflow-hidden rounded-3xl bg-slate-900 border-2 border-purple-500/60 p-5 text-center shadow-2xl shadow-purple-950/80 animate-cascade">
-            <button
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-xs overflow-hidden rounded-3xl bg-slate-900 border-2 border-purple-500/60 p-5 text-center shadow-2xl shadow-purple-950/80"
+          >
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85 }}
               onClick={() => setSelectedAchievement(null)}
-              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10"
+              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 cursor-pointer"
             >
               <X className="w-4 h-4" />
-            </button>
+            </motion.button>
 
             <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center mb-3 shadow-lg shadow-purple-500/40 animate-trophy-spin text-white">
               <Trophy className="w-8 h-8 fill-current" />
@@ -495,13 +573,16 @@ export const ChallengeModal: React.FC<ChallengeModalProps> = ({
               </span>
             </div>
 
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.93 }}
               onClick={() => setSelectedAchievement(null)}
-              className="mt-4 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all"
+              className="mt-4 w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
             >
               Fechar
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
       )}
     </div>

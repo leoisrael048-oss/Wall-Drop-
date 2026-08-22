@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Globe, ArrowRight, Play, Check, Volume2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { GameSettings, Language } from '../types';
 import { audio } from '../utils/audio';
 import { narratorService } from '../services/narratorService';
@@ -180,14 +181,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               {availableLanguages.map((l) => {
                 const isSelected = selectedLang === l;
                 return (
-                  <button
+                  <motion.button
                     key={l}
                     type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
                     onClick={() => {
                       audio.playSfx('click', settings);
                       setSelectedLang(l);
                     }}
-                    className={`py-2.5 px-1 rounded-2xl text-xs font-extrabold flex flex-col items-center justify-center gap-1 border transition-all active:scale-95 ${
+                    className={`py-2.5 px-1 rounded-2xl text-xs font-extrabold flex flex-col items-center justify-center gap-1 border transition-all ${
                       isSelected
                         ? 'bg-purple-500/20 border-purple-400 text-purple-300 shadow-lg shadow-purple-500/20 scale-105'
                         : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -195,18 +198,20 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   >
                     <span className="text-xl">{getLanguageFlag(l)}</span>
                     <span className="uppercase text-[9px] tracking-wider">{l}</span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
 
-            <button
+            <motion.button
               type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 transition-all mt-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all mt-2"
             >
               <span>{s1Text.nextBtn}</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </motion.button>
           </form>
         )}
 
@@ -238,23 +243,27 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               />
 
               {/* TEST VOICE BUTTON */}
-              <button
+              <motion.button
                 type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleTestVoice}
-                className="w-full py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 uppercase shadow-sm"
+                className="w-full py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black tracking-wider flex items-center justify-center gap-2 transition-all uppercase shadow-sm"
               >
                 <Volume2 className="w-4 h-4 text-amber-400" />
                 <span>{s2Text.testVoiceBtn}</span>
-              </button>
+              </motion.button>
             </div>
 
-            <button
+            <motion.button
               type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 transition-all mt-1"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl text-xs font-black tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all mt-1"
             >
               <span>{s2Text.confirmBtn}</span>
               <Play className="w-4 h-4 fill-current" />
-            </button>
+            </motion.button>
           </form>
         )}
       </div>

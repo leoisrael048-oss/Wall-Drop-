@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { RotateCcw, Home, Share2, Trophy, Coins, Flame, Sparkles, PlayCircle, Globe, WifiOff, Film, Skull } from 'lucide-react';
+import { RotateCcw, Home, Share2, Trophy, Coins, Flame, Sparkles, PlayCircle, Globe, WifiOff, Film, Skull, Loader2 } from 'lucide-react';
 import { FUNNY_EXCUSES_BY_LANG, HIGH_SCORE_MEME_PHRASES } from '../constants/gameData';
 import { audio } from '../utils/audio';
 import { GameSettings, SocialComparisonData } from '../types';
@@ -64,6 +64,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   const [isOnline, setIsOnline] = useState<boolean>(networkService.isOnline());
   const [hasReplayAvailable] = useState<boolean>(() => replayRecorder.hasReplay());
   const [displayedCoins, setDisplayedCoins] = useState(0);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   // Animated coin tally counting effect on game over
   useEffect(() => {
@@ -100,105 +101,61 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         score,
         coinsEarned,
         settings.selectedCharacter || 'nox',
-        settings.playerName || 'Player'
-      );
-    }
+        settings.playerName || 'Jogador'
+      ).then(() => {
+        // Fetch percentile ranking comparison
+        return firebaseLeaderboard.fetchSocialPercentile(score);
+      }).then((social) => {
+        if (social) {
+          setSocialData(social);
 
-    // Load real percentile social comparison
-    firebaseLeaderboard.fetchSocialPercentile(score).then((data) => {
-      setSocialData(data);
-      if (data && data.percentile >= 70) {
-        saveCelebrationNotice({
-          id: `rank_${Date.now()}`,
-          type: (data.rank && data.rank <= 10) ? 'rank_up' : 'top_percentile',
-          title: (data.rank && data.rank <= 10) ? `👑 TOP ${data.rank} MUNDIAL!` : `🔥 TOP ${100 - data.percentile}% DO MUNDO!`,
-          description: `Sua marca de ${score} pts superou ${data.percentile}% dos jogadores de Wall Drop!`,
-          score: score,
-          rank: data.rank,
-          percentile: data.percentile,
-          timestamp: Date.now(),
-          viewed: false,
-        });
-      }
-    });
-
-    if (isNewRecord) {
-      audio.playSfx('record', settings);
-      audio.speakNarrator('highScore', settings);
-
-      saveCelebrationNotice({
-        id: `rec_${Date.now()}`,
-        type: 'new_record',
-        title: '🎉 NOVO RECORDE PESSOAL!',
-        description: `Incrível! Você alcançou ${score} pontos e subiu no ranking global!`,
-        score: score,
-        prevScore: highScore,
-        timestamp: Date.now(),
-        viewed: false,
+          // If exceptional score, save celebration notice
+          if (social.percentile >= 95) {
+            saveCelebrationNotice({
+              id: `celeb_${Date.now()}`,
+              title: 'TOP 5% GLOBAL!',
+              description: `Top ${100 - social.percentile}% Global alcançado com ${score} pts!`,
+              score: score,
+              percentile: social.percentile,
+              timestamp: Date.now(),
+              type: 'top_percentile',
+            });
+          }
+        }
+      }).catch((err) => {
+        console.warn('Leaderboard sync note:', err);
       });
-    } else {
-      // Trigger voice according to active narrator personality
-      const personality = settings.narratorPersonality || 'aleatorio';
-      if (personality === 'irritante') {
-        audio.speakNarrator('irritante', settings);
-      } else if (personality === 'engracado') {
-        audio.speakNarrator('engracado', settings);
-      } else if (personality === 'carinhoso') {
-        audio.speakNarrator('carinhoso', settings);
-      } else if (personality === 'timido') {
-        audio.speakNarrator('timido', settings);
-      } else {
-        audio.speakNarrator('deathFast', settings);
-      }
     }
 
     return () => unsub();
-  }, [isNewRecord, settings, score, coinsEarned]);
+  }, [score, coinsEarned, settings.selectedCharacter, settings.playerName, settings.language]);
 
-  const getFriendlyAdErrorMessage = (codeOrMsg: string): string => {
-    switch (codeOrMsg) {
-      case 'unavailable':
-        return lang === 'pt' ? '⚠️ Anúncio indisponível no momento. Tente novamente!'
-          : lang === 'es' ? '⚠️ Anuncio no disponible en este momento. ¡Inténtalo de nuevo!'
-          : '⚠️ Ad unavailable right now. Please try again!';
-      case 'not_finished':
-        return lang === 'pt' ? '⚠️ Assista o anúncio até o final para continuar a partida!'
-          : lang === 'es' ? '⚠️ ¡Mira el anuncio completo para continuar!'
-          : '⚠️ Watch the full ad to continue your game!';
-      case 'timeout':
-        return lang === 'pt' ? '⚠️ Conexão lenta. O anúncio demorou para carregar.'
-          : lang === 'es' ? '⚠️ Conexión lenta. El anuncio tardó demasiado.'
-          : '⚠️ Slow connection. Ad took too long to load.';
-      case 'loading':
-        return lang === 'pt' ? '⚠️ Anúncio carregando... Por favor, aguarde.'
-          : lang === 'es' ? '⚠️ Cargando anuncio... Por favor, espera.'
-          : '⚠️ Ad is loading... Please wait.';
-      case 'offline':
-        return lang === 'pt' ? '📶 Modo Offline: Anúncios requerem internet.'
-          : lang === 'es' ? '📶 Modo sin conexión: Los anuncios requieren internet.'
-          : '📶 Offline Mode: Ads require internet connection.';
-      default:
-        return codeOrMsg.startsWith('⚠️') ? codeOrMsg : `⚠️ ${codeOrMsg}`;
+  const getFriendlyAdErrorMessage = (err: any): string => {
+    const msg = String(err?.message || err || '').toLowerCase();
+    if (msg.includes('no_fill') || msg.includes('sem anúncio') || msg.includes('no ad')) {
+      return lang === 'pt' ? 'Anúncio indisponível no momento. Tente novamente mais tarde!' : 'Ad unavailable right now. Try again later!';
     }
+    if (msg.includes('network') || msg.includes('conexão') || msg.includes('offline') || !navigator.onLine) {
+      return lang === 'pt' ? 'Sem conexão com a internet para carregar o anúncio.' : 'No internet connection to load the ad.';
+    }
+    if (msg.includes('dismissed') || msg.includes('fechou') || msg.includes('skipped')) {
+      return lang === 'pt' ? 'Você precisa assistir o anúncio até o final para reviver.' : 'You must watch the full ad to revive.';
+    }
+    return lang === 'pt' ? 'Não foi possível reproduzir o vídeo de recompensa.' : 'Could not play the rewarded video.';
   };
 
   const handleRewardedSecondChance = () => {
-    if (isLoadingAd || hasUsedSecondChance) return;
-
+    if (hasUsedSecondChance || !onSecondChance) return;
     setIsLoadingAd(true);
-    setAdMessage(getFriendlyAdErrorMessage('loading'));
-    audio.playSfx('click', settings);
+    setAdMessage(null);
 
     adService.showRewardedAd(
       () => {
         setIsLoadingAd(false);
-        setAdMessage(null);
         setHasUsedSecondChance(true);
-        audio.playSfx('coin', settings);
+        audio.playSfx('powerup', settings);
         audio.speakNarrator('secondChance', settings);
-        if (onSecondChance) {
-          onSecondChance();
-        }
+        onSecondChance();
       },
       (err) => {
         setIsLoadingAd(false);
@@ -209,8 +166,39 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
   };
 
   const handleShareClick = () => {
+    setProcessingKey('share');
     audio.playSfx('click', settings);
-    onShare();
+    setTimeout(() => {
+      onShare();
+      setProcessingKey(null);
+    }, 120);
+  };
+
+  const handleRestartClick = () => {
+    setProcessingKey('restart');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onRestart();
+    }, 120);
+  };
+
+  const handleHomeClick = () => {
+    setProcessingKey('home');
+    audio.playSfx('click', settings);
+    audio.speakNarrator('returnMenu', settings);
+    setTimeout(() => {
+      onHome();
+    }, 120);
+  };
+
+  const handleWatchReplayClick = () => {
+    if (!onWatchReplay) return;
+    setProcessingKey('replay');
+    audio.playSfx('click', settings);
+    setTimeout(() => {
+      onWatchReplay();
+      setProcessingKey(null);
+    }, 120);
   };
 
   return (
@@ -323,16 +311,24 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         {/* Optional Rewarded Second Chance Button */}
         {onSecondChance && !hasUsedSecondChance && (
           <div className="w-full mb-3 flex flex-col gap-1">
-            <button
+            <motion.button
+              type="button"
               disabled={isLoadingAd}
+              whileHover={!isLoadingAd ? { scale: 1.03, y: -1 } : {}}
+              whileTap={!isLoadingAd ? { scale: 0.94 } : {}}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
               onClick={handleRewardedSecondChance}
-              className={`w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all border border-emerald-300/40 ${
+              className={`w-full py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:brightness-110 text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all border border-emerald-300/40 cursor-pointer ${
                 isLoadingAd ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
-              <PlayCircle className="w-4 h-4 fill-current" />
+              {isLoadingAd ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <PlayCircle className="w-4 h-4 fill-current" />
+              )}
               <span>{isLoadingAd ? t('loadingAd') : t('secondChanceAd')}</span>
-            </button>
+            </motion.button>
             {adMessage && (
               <span className="text-[10px] font-bold text-amber-400 animate-pulse">
                 {adMessage}
@@ -343,40 +339,76 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2.5 w-full">
+          {/* Main Restart / Play Again Button */}
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.03, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+            onClick={handleRestartClick}
+            className={`w-full py-3.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/30 transition-all border border-cyan-400/50 cursor-pointer ${
+              processingKey === 'restart' ? 'ring-2 ring-cyan-300' : ''
+            }`}
+          >
+            {processingKey === 'restart' ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <RotateCcw className="w-5 h-5" />
+            )}
+            <span>{processingKey === 'restart' ? 'REINICIANDO...' : t('playAgain')}</span>
+          </motion.button>
+
           {/* Watch Death Replay Button */}
           {hasReplayAvailable && onWatchReplay && (
-            <button
-              onClick={() => {
-                audio.playSfx('click', settings);
-                onWatchReplay();
-              }}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-purple-900/60 hover:from-purple-800/80 hover:to-indigo-800/80 border border-purple-500/40 text-purple-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all"
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+              onClick={handleWatchReplayClick}
+              className="w-full py-2.5 bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-purple-900/60 hover:from-purple-800/80 hover:to-indigo-800/80 border border-purple-500/40 text-purple-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
-              <Film className="w-4 h-4 text-purple-400" />
+              {processingKey === 'replay' ? (
+                <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+              ) : (
+                <Film className="w-4 h-4 text-purple-400" />
+              )}
               <span>🎬 {lang === 'pt' ? 'Ver Replay da Morte' : lang === 'es' ? 'Ver Repetición' : 'Watch Death Replay'} (30 FPS)</span>
-            </button>
+            </motion.button>
           )}
 
           <div className="grid grid-cols-2 gap-2.5 w-full">
-            <button
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
               onClick={handleShareClick}
-              className="py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 border border-cyan-400/40 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-cyan-500/20"
+              className="py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 border border-cyan-400/40 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
             >
-              <Share2 className="w-4 h-4 text-cyan-200" />
+              {processingKey === 'share' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Share2 className="w-4 h-4 text-cyan-200" />
+              )}
               <span>{t('share')}</span>
-            </button>
+            </motion.button>
 
-            <button
-              onClick={() => {
-                audio.playSfx('click', settings);
-                audio.speakNarrator('returnMenu', settings);
-                onHome();
-              }}
-              className="py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-slate-100 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg"
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+              onClick={handleHomeClick}
+              className="py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600/70 text-slate-100 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
             >
-              <Home className="w-4 h-4 text-slate-300" />
-              <span>{t('menu')}</span>
-            </button>
+              {processingKey === 'home' ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+              ) : (
+                <Home className="w-4 h-4 text-slate-300" />
+              )}
+              <span>{processingKey === 'home' ? 'VOLTANDO...' : t('menu')}</span>
+            </motion.button>
           </div>
         </div>
       </motion.div>

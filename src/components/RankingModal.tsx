@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Medal, Sparkles, Globe, Smartphone, RefreshCw, Wifi, WifiOff, CloudUpload, Crown, Zap, Flame } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowLeft, Trophy, Medal, Sparkles, Smartphone, RefreshCw, Wifi, WifiOff, CloudUpload, Crown, Zap, Flame, Loader2 } from 'lucide-react';
 import { HighScoreRecord, GameSettings, CloudLeaderboardRecord } from '../types';
 import { audio } from '../utils/audio';
 import { getTranslation } from '../utils/i18n';
@@ -30,6 +31,7 @@ export const RankingModal: React.FC<RankingModalProps> = ({
   const [pendingQueueCount, setPendingQueueCount] = useState<number>(0);
   const [syncedAt, setSyncedAt] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
 
   const loadTop5CloudLeaderboard = async () => {
     setIsLoadingCloud(true);
@@ -68,10 +70,21 @@ export const RankingModal: React.FC<RankingModalProps> = ({
   }, []);
 
   const handleSyncQueue = async () => {
+    setProcessingKey('sync');
     audio.playSfx('click', settings);
     setIsLoadingCloud(true);
     await firebaseLeaderboard.syncPendingScores();
     await loadTop5CloudLeaderboard();
+    setProcessingKey(null);
+  };
+
+  const handleBackWithAnimation = () => {
+    setProcessingKey('back');
+    audio.playSfx('click', settings);
+    audio.speakNarrator('returnMenu', settings);
+    setTimeout(() => {
+      onBack();
+    }, 120);
   };
 
   // Rank badge decorator helper
@@ -104,28 +117,40 @@ export const RankingModal: React.FC<RankingModalProps> = ({
     }
   };
 
-  // Calculate difference to #5 score
-  const fifthPlaceScore = cloudScores.length >= 5 ? cloudScores[4].score : (cloudScores[cloudScores.length - 1]?.score || 0);
-  const diffToTop5 = Math.max(0, fifthPlaceScore - personalHighScore + 1);
+  // Check if current user is in Top 5
   const isPlayerInTop5 = cloudScores.some(
-    (r) => r.playerName?.trim().toLowerCase() === settings.playerName?.trim().toLowerCase()
+    (c) => c.playerName?.trim().toLowerCase() === settings.playerName?.trim().toLowerCase()
   );
 
+  const fifthScore = cloudScores.length >= 5 ? cloudScores[4].score : 0;
+  const diffToTop5 = Math.max(0, fifthScore - personalHighScore + 1);
+
   return (
-    <div className="relative w-full h-full flex flex-col justify-between items-center p-4 sm:p-5 bg-slate-950 text-white overflow-hidden select-none">
+    <div className="relative w-full h-full flex flex-col justify-between items-center p-6 bg-slate-950 text-white overflow-hidden select-none">
+      {/* Top Ambient Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
       {/* Top Header */}
-      <div className="w-full max-w-sm flex items-center justify-between z-10 pt-1">
-        <button
-          onClick={() => {
-            audio.playSfx('click', settings);
-            audio.speakNarrator('returnMenu', settings);
-            onBack();
-          }}
-          className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition-all active:scale-95 shadow-md flex items-center gap-1 text-xs font-semibold"
+      <div className="w-full max-w-sm flex items-center justify-between z-10 pt-2">
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
+          onClick={handleBackWithAnimation}
+          className={`p-2.5 rounded-xl border transition-all shadow-md flex items-center gap-1 text-xs font-semibold cursor-pointer ${
+            processingKey === 'back'
+              ? 'bg-slate-800 border-amber-400 text-white ring-1 ring-amber-400'
+              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white'
+          }`}
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{t('back')}</span>
-        </button>
+          {processingKey === 'back' ? (
+            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+          ) : (
+            <ArrowLeft className="w-4 h-4" />
+          )}
+          <span>{processingKey === 'back' ? 'VOLTANDO...' : t('back')}</span>
+        </motion.button>
 
         {/* Online / Offline Status & Latency Badge */}
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border shadow-md transition-colors ${
@@ -156,35 +181,53 @@ export const RankingModal: React.FC<RankingModalProps> = ({
       <div className="w-full max-w-sm flex flex-col items-center my-auto z-10 w-full gap-2.5">
         {/* Navigation Tabs: Global vs Local */}
         <div className="w-full grid grid-cols-2 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner">
-          <button
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.94 }}
             onClick={() => {
+              setProcessingKey('tab-global');
               audio.playSfx('click', settings);
               setActiveTab('global');
               if (cloudScores.length === 0) loadTop5CloudLeaderboard();
+              setTimeout(() => setProcessingKey(null), 100);
             }}
-            className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'global'
                 ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 shadow-md font-black'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Crown className="w-3.5 h-3.5" />
+            {processingKey === 'tab-global' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Crown className="w-3.5 h-3.5" />
+            )}
             <span>TOP 5 GLOBAL</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.94 }}
             onClick={() => {
+              setProcessingKey('tab-local');
               audio.playSfx('click', settings);
               setActiveTab('local');
+              setTimeout(() => setProcessingKey(null), 100);
             }}
-            className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'local'
                 ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" />
+            {processingKey === 'tab-local' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Smartphone className="w-3.5 h-3.5" />
+            )}
             <span>LOCAL (APARELHO)</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Offline Queued Scores Notification */}
@@ -195,12 +238,16 @@ export const RankingModal: React.FC<RankingModalProps> = ({
               <span>{pendingQueueCount} {pendingQueueCount === 1 ? 'partida pendente' : 'partidas pendentes'} de envio</span>
             </div>
             {!isOffline && (
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.92 }}
                 onClick={handleSyncQueue}
-                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-[10px] active:scale-95 shadow transition-all"
+                className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-[10px] shadow transition-all flex items-center gap-1 cursor-pointer"
               >
-                Sincronizar
-              </button>
+                {processingKey === 'sync' && <Loader2 className="w-3 h-3 animate-spin" />}
+                <span>{processingKey === 'sync' ? '...' : 'Sincronizar'}</span>
+              </motion.button>
             )}
           </div>
         )}
@@ -226,17 +273,20 @@ export const RankingModal: React.FC<RankingModalProps> = ({
                   </span>
                 </div>
               </div>
-              <button
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.85 }}
                 onClick={() => {
                   audio.playSfx('click', settings);
                   loadTop5CloudLeaderboard();
                 }}
                 disabled={isLoadingCloud}
-                className="p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-amber-400 rounded-lg border border-slate-700 transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+                className="p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-amber-400 rounded-lg border border-slate-700 transition-all disabled:opacity-50 shadow-sm cursor-pointer"
                 title="Atualizar TOP 5"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isLoadingCloud ? 'animate-spin text-amber-400' : ''}`} />
-              </button>
+              </motion.button>
             </div>
 
             {/* Offline Fallback Warning Notice */}
